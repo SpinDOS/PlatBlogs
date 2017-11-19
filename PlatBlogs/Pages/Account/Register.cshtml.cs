@@ -75,7 +75,12 @@ namespace PlatBlogs.Pages.Account
                     var callbackUrl = Url.EmailConfirmationLink(user.Id, code, Request.Scheme);
                     await _emailSender.SendEmailConfirmationAsync(Input.Email, callbackUrl);
 
-                    await _signInManager.SignInAsync(user, isPersistent: false);
+                    //await _signInManager.SignInAsync(user, isPersistent: false);
+                    if (returnUrl == null)
+                    {
+                        TempData["EmailToConfirm"] = Input.Email;
+                        return RedirectToPage("Login");
+                    }
                     return LocalRedirect(Url.GetLocalUrl(returnUrl));
                 }
                 foreach (var error in result.Errors)
