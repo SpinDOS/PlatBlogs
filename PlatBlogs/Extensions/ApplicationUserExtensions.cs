@@ -11,6 +11,6 @@ namespace PlatBlogs.Extensions
     public static class ApplicationUserExtensions
     {
         public static string AvatarFilePath(this ApplicationUser user, IHostingEnvironment environment) =>
-            Path.Combine(environment.WebRootPath, user.AvatarPath.Substring(1));
+            environment.WebRootPath + user.AvatarPath;
     }
 }

@@ -126,11 +126,16 @@ namespace PlatBlogs.Pages.Account
                 {
                     if (Input.Avatar != null)
                     {
-                        user.AvatarPath = Path.Combine("/avatars", user.UserName + Path.GetExtension(Input.Avatar.FileName));
+                        user.AvatarPath = Path.Combine("/avatars",
+                            user.UserName + Path.GetExtension(Input.Avatar.FileName));
                         using (var file = System.IO.File.Open(user.AvatarFilePath(_environment), FileMode.Create))
                         {
                             await Input.Avatar.CopyToAsync(file);
                         }
+                    }
+                    else
+                    {
+                        user.AvatarPath = "/avatars/_no_image_.png";
                     }
 
                     _logger.LogInformation("User created a new account with password.");
