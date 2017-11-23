@@ -23,17 +23,17 @@ namespace PlatBlogs.Data
             // Add your customizations after calling base.OnModelCreating(builder);
 
             builder.Entity<FollowPair>()
-                .HasKey(pair => new {pair.FollowedName, pair.FollowerName});
+                .HasKey(pair => new {pair.FollowedId, pair.FollowerId});
 
             builder.Entity<FollowPair>()
                 .HasOne(pair => pair.Followed)
                 .WithMany(user => user.Followers)
-                .HasForeignKey(pair => pair.FollowedName);
+                .HasForeignKey(pair => pair.FollowedId);
 
             builder.Entity<FollowPair>()
                 .HasOne(pair => pair.Follower)
                 .WithMany(user => user.Following)
-                .HasForeignKey(pair => pair.FollowerName)
+                .HasForeignKey(pair => pair.FollowerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
 
@@ -63,8 +63,9 @@ namespace PlatBlogs.Data
 
         }
 
-        public DbSet<PlatBlogs.Data.ApplicationUser> ApplicationUser { get; set; }
+        public DbSet<ApplicationUser> ApplicationUser { get; set; }
         public DbSet<Post> Posts { get; set; }
+        public DbSet<FollowPair> Followers { get; set; }
         public DbSet<Like> Likes { get; set; }
     }
 }
