@@ -35,8 +35,19 @@ namespace PlatBlogs.Data
                 .WithMany(user => user.Following)
                 .HasForeignKey(pair => pair.FollowerName)
                 .OnDelete(DeleteBehavior.Restrict);
+
+
+            builder.Entity<Post>()
+                .HasKey(post => new { post.AuthorId, post.Id });
+
+            builder.Entity<Post>()
+                .HasOne(post => post.Author)
+                .WithMany(user => user.Posts)
+                .HasForeignKey(post => post.AuthorId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
 
         public DbSet<PlatBlogs.Data.ApplicationUser> ApplicationUser { get; set; }
+        public DbSet<Post> Posts { get; set; }
     }
 }

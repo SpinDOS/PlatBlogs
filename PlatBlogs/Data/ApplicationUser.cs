@@ -17,5 +17,7 @@ namespace PlatBlogs.Data
 
         public IList<FollowPair> Following { get; set; } = new List<FollowPair>();
         public IList<FollowPair> Followers { get; set; } = new List<FollowPair>();
+
+        public IList<Post> Posts { get; set; } = new List<Post>();
     }
 }
