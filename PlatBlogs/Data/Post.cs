@@ -12,5 +12,7 @@ namespace PlatBlogs.Data
         public ApplicationUser Author { get; set; }
         public string Message { get; set; }
         public DateTime DateTime { get; set; }
+
+        public IList<Like> Likes { get; set; } = new List<Like>();
     }
 }

@@ -45,9 +45,26 @@ namespace PlatBlogs.Data
                 .WithMany(user => user.Posts)
                 .HasForeignKey(post => post.AuthorId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<Like>()
+                .HasKey(like => new { like.LikerId, like.LikedUserId, like.LikedPostId });
+
+            builder.Entity<Like>()
+                .HasOne(like => like.Liker)
+                .WithMany(user => user.Likes)
+                .HasForeignKey(like => like.LikerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<Like>()
+                .HasOne(like => like.Post)
+                .WithMany(post => post.Likes)
+                .HasForeignKey(like => new { like.LikedUserId, like.LikedPostId })
+                .OnDelete(DeleteBehavior.Restrict);
+
         }
 
         public DbSet<PlatBlogs.Data.ApplicationUser> ApplicationUser { get; set; }
         public DbSet<Post> Posts { get; set; }
+        public DbSet<Like> Likes { get; set; }
     }
 }
