@@ -105,45 +105,48 @@ a:link, a:visited, a:hover, a:active  {
 }
 
 .right-menu {
-    margin-left: 290px;
-    width: -webkit-calc(100% - 290px);
-    width:    -moz-calc(100% - 290px);
-    width:         calc(100% - 290px);
+    margin-left: 295px;
+}
+
+.lm-image-link {
+    display: block;
+    margin-bottom: 10px;
 }
 
 .lm-image {
-    height: 200px;
+    height: 225px;
     max-width: 280px;
     margin-left: -10px;
 }
 
 .name {
     font-size: 20px;
-    font-weight: bold;
+    font-weight: bold !important;
+    margin-right: 5px;
 }
 
-.lm-name {
-    margin-top: 10px;
-    margin-bottom: 0;
+.name, .nickname {
+    vertical-align: middle;
 }
 
-.lm-name, .lm-nickname {
-    display: inline-block;
-}
-
-.left-menu, .nickname {
+.left-menu, .right-menu, .nickname {
     font-size: 15px;
     color: black;
+}
+
+.lm-nickname {
+    display: inline-block;
+    margin-top: 5px;
 }
 
 .lock-sign {
     width: 15px;
     height: 15px;
-    margin-top: -3px;
     margin-left: 2px;
 }
 
 .lm-statistics {
+    display: inline-block;
     width: 100%;
 }
 
@@ -156,36 +159,38 @@ a:link, a:visited, a:hover, a:active  {
     padding-right: 5px;
 }
 
+.lm-hr {
+    display: none;
+    width: 100%;
+    border-color: #1DA1F2;
+    border-radius: 5px;
+    border-style: solid;
+    margin-top: 5px;
+}
 
 @media (max-width: 767px) {
     .left-menu {
         position: relative;
         width: 100%;
     }
+
     .right-menu {
         margin-left: 0;
-        width: 100%;    
     }
 
     .lm-image-link {
-        margin-right: 20px;
-        margin-bottom: 5px;
-    }
-
-    .lm-user-info {
+        float: left;
         display: inline-block;
-        vertical-align: top;
-        width: 350px;
+        margin-bottom: 5px;
+        margin-right: 20px;
     }
 
-    .lm-name {
-        margin-top: 0;
+    .lm-hr {
+        display: block;
     }
-    
 }
 
-.post {
-    border-color: #888;
+.post, .user {
     border-radius: 30px;
     border-style: solid;
     border-width: 3px;
@@ -195,18 +200,12 @@ a:link, a:visited, a:hover, a:active  {
     color: black;
 }
 
+.post {
+    border-color: #ccc;
+}
+
 .post-date {
     float: right;
-}
-
-.post-author-name {
-    display: inline-block;
-    margin-right: 10px;
-}
-
-.post-author-nickname {
-    display: inline-block;
-    line-height: 15px;
 }
 
 .post-like-form {
@@ -256,4 +255,21 @@ a:link, a:visited, a:hover, a:active  {
     color: #1DA1F2;
     text-decoration: none;
     background: none !important;
+}
+
+.user {
+    border-color: #777;
+    min-height: 90px;
+}
+
+.user-img {
+	width: 75px;
+	height: 75px;
+	display: inline-block;
+    float: left;
+    margin-right: 10px;
+}
+
+.nickname-group {
+    display: inline-block;
 }
