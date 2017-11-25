@@ -9,9 +9,11 @@ namespace PlatBlogs.Pages
 {
     public class IndexModel : PageModel
     {
-        public void OnGet()
+        public IActionResult OnGet()
         {
-
+            if (User.Identity.IsAuthenticated)
+                return RedirectToPage("Home");
+            return Page();
         }
     }
 }
