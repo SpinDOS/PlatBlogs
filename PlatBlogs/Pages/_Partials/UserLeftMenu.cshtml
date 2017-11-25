@@ -1,0 +1,56 @@
+﻿@model _Partials.UserLeftMenu
+
+@{
+    var hrefToUser = "/user/" + Model.User.UserName;
+    var hasDateOfBirth = Model.User.DateOfBirth.HasValue;
+    var hasCity = !string.IsNullOrWhiteSpace(Model.User.City);
+    var followAction = Model.Followed.HasValue && Model.Followed.Value? "UnFollow" : "Follow";
+}
+
+<div class="left-menu">
+    <a href="@hrefToUser" class="lm-image-link">
+        <img src="@Model.User.AvatarPath" alt="@Model.User.UserName" asp-append-version="true" class="lm-image">
+    </a>
+    <div class="lm-user-info">
+        <a href="@hrefToUser">
+            <p class="lm-name name">@Model.User.FullName</p>
+        </a>
+        <br/>
+        <a href="@hrefToUser">
+            <p class="lm-nickname nickname">@@@Model.User.UserName</p>
+        </a>
+        <br/>
+        
+        @if (hasDateOfBirth || hasCity)
+        {
+            <p>
+                @if (Model.User.DateOfBirth.HasValue)
+                {
+                    @(Model.User.DateOfBirth.Value.ToString("dd.MM.yyyy") + (hasCity? ", " : ""))
+                }
+                @if (hasCity)
+                {
+                    @Model.User.City
+                }
+            </p>
+        }
+        @if (!string.IsNullOrWhiteSpace(Model.User.ShortInfo))
+        {
+            <p>@Model.User.ShortInfo</p>
+        }
+
+        <div class="lm-statistics"> 
+            <a href="@hrefToUser" class="lm-statistics-block">Posts<br>@Model.PostCount</a>
+            <a href="/followings/@Model.User.UserName" class="lm-statistics-block">Following<br>@Model.FollowingsCount</a>
+            <a href="/followers/@Model.User.UserName" class="lm-statistics-block">Followers<br>@Model.FollowersCount</a>
+        </div>
+        @if (Model.Followed.HasValue)
+        {
+            <form method="post" asp-controller="Api" asp-action="@followAction">
+                <input type="hidden" name="user" value="@Model.User.Id"/>
+                <input type="hidden" name="returnUrl" value="@Model.ReturnUrl"/>
+                <button type="submit" class="platblogs-button">@followAction</button>
+            </form> 
+        }
+    </div>
+</div>

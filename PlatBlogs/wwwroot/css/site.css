@@ -33,3 +33,220 @@ body {
         display: none;
     }
 }
+
+
+.navbar-input-search {
+    background-color: #f5f8fa;
+    border-radius: 21px;
+    border: 1px solid #e6ecf0;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    color: #14171a;
+    display: block;
+    font-size: 12px;
+    line-height: 16px;
+    padding: 8px 32px 8px 12px;
+    transition: all .2s ease-in-out;
+    height: 25px;
+    width: 200px;
+
+    margin-top: 14px;
+    margin-left: 10px;
+}
+
+.navbar-newpost, .navbar-newpost:link, .navbar-newpost:visited, 
+    .navbar-newpost:hover, .navbar-newpost:active {
+    background-color: #1da1f2 !important;
+    border: 1px solid #1da1f2 !important;
+    color: #fff !important;
+    border-radius: 100px;
+    box-shadow: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 16px;
+    padding: 6px 0;
+    position: relative;
+    text-align: center;
+    white-space: nowrap;
+
+    margin-top: 11px;
+    width: 100px;
+    margin-left: 10px;
+    margin-bottom: 5px;
+}
+
+@media screen and (max-width: 767px) {
+    .navbar-newpost, .navbar-newpost:link, .navbar-newpost:visited, 
+    .navbar-newpost:hover, .navbar-newpost:active {
+        margin-top: 0;
+    }
+
+    .navbar-input-search {
+        margin-top: 5px;
+    }
+}
+
+a:link, a:visited, a:hover, a:active  {
+  /* Applies to all links */
+    text-decoration:  none;
+    font-weight:      normal;
+    color: black;
+}
+
+.left-menu {
+    position: fixed;
+    margin-top: 10px;
+    width: 280px;
+    padding-left: 10px;
+    overflow-wrap: break-word;
+    background: white;
+    z-index: 1;
+}
+
+.right-menu {
+    margin-left: 290px;
+    width: -webkit-calc(100% - 290px);
+    width:    -moz-calc(100% - 290px);
+    width:         calc(100% - 290px);
+}
+
+.lm-image {
+    height: 200px;
+    max-width: 280px;
+    margin-left: -10px;
+}
+
+.name {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.lm-name {
+    margin-top: 10px;
+    margin-bottom: 0;
+}
+
+.lm-name, .lm-nickname {
+    display: inline-block;
+}
+
+.left-menu, .nickname {
+    font-size: 15px;
+    color: black;
+}
+
+.lm-statistics {
+    width: 100%;
+}
+
+.lm-statistics-block {
+    width: 32%;
+    display: inline-block;
+    vertical-align: top;
+    margin: 0;
+    font-size: 17px;
+    padding-right: 5px;
+}
+
+
+@media (max-width: 767px) {
+    .left-menu {
+        position: relative;
+        width: 100%;
+    }
+    .right-menu {
+        margin-left: 0;
+        width: 100%;    
+    }
+
+    .lm-image-link {
+        margin-right: 20px;
+        margin-bottom: 5px;
+    }
+
+    .lm-user-info {
+        display: inline-block;
+        vertical-align: top;
+        width: 350px;
+    }
+
+    .lm-name {
+        margin-top: 0;
+    }
+    
+}
+
+.post {
+    border-color: #888;
+    border-radius: 30px;
+    border-style: solid;
+    border-width: 3px;
+    padding: 5px 30px;
+    margin-top: 10px;
+    font-size: 15px;
+    color: black;
+}
+
+.post-date {
+    float: right;
+}
+
+.post-author-name {
+    display: inline-block;
+    margin-right: 10px;
+}
+
+.post-author-nickname {
+    display: inline-block;
+    line-height: 15px;
+}
+
+.post-like-form {
+    width: 100%;
+    display: block;
+    text-align: center;
+}
+
+.post-like-button {
+    border: none;
+    padding: 0 5px 0 28px !important;
+    background: none !important;
+    background-repeat: no-repeat !important;
+    background-position: 5px center !important;
+    background-size: 22px !important;
+    font-size: 14px;
+    line-height: 23px;
+    color: #657786;
+}
+
+.post-like-button:hover {
+    color: #e0245e;
+}
+
+.not-liked-img {
+    background-image: url("/images/like_not_liked.png") !important;
+}
+
+.not-liked-img:hover {
+    background-image: url("/images/like_not_liked_hover.png") !important;
+}
+
+.liked-img {
+    background-image: url("/images/like_liked.png") !important;
+}
+
+.platblogs-button {
+    width: 100%;
+    display: block;
+    text-align: center;
+    border-color: #1DA1F2;
+    border-radius: 30px;
+    border-style: solid;
+    border-width: 2px;
+    padding: 5px 30px;
+    margin-top: 10px;
+    color: #1DA1F2;
+    text-decoration: none;
+    background: none !important;
+}
