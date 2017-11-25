@@ -1,0 +1,24 @@
+﻿@model ApplicationUser
+
+@{
+    var hrefToUser = "/user/" + Model.UserName;
+}
+
+<div class="user">
+    <a href="@hrefToUser">
+        <img src="@Model.AvatarPath" alt="@@@Model.UserName" asp-append-version="true" class="user-img">
+    </a>
+    <a href="@hrefToUser" class="name">@Model.FullName</a>
+    <div class="nickname-group">
+        <a href="@hrefToUser" class="nickname">@@@Model.UserName</a>
+        @if (!Model.PublicProfile)
+        {
+            <img src="images/lock.png" class="lock-sign" />
+        }
+    </div>
+    <br/>
+    @if (!string.IsNullOrWhiteSpace(Model.ShortInfo))
+    {
+        @Model.ShortInfo
+    }
+</div>
