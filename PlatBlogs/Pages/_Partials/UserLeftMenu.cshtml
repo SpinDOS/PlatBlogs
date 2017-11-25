@@ -1,10 +1,11 @@
-﻿@model _Partials.UserLeftMenu
+﻿@using Extensions
+@model _Partials.UserLeftMenu
 
 @{
     var hrefToUser = "/user/" + Model.User.UserName;
     var hasDateOfBirth = Model.User.DateOfBirth.HasValue;
     var hasCity = !string.IsNullOrWhiteSpace(Model.User.City);
-    var followAction = Model.Followed.HasValue && Model.Followed.Value? "UnFollow" : "Follow";
+    var followAction = Model.Followed.HasValue && Model.Followed.Value? "Unfollow" : "Follow";
 }
 
 <div class="left-menu">
@@ -19,6 +20,10 @@
         <a href="@hrefToUser">
             <p class="lm-nickname nickname">@@@Model.User.UserName</p>
         </a>
+        @if (!Model.User.PublicProfile)
+        {
+            <img src="images/lock.png" class="lock-sign"/>
+        }
         <br/>
         
         @if (hasDateOfBirth || hasCity)

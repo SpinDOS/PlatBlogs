@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Text.Encodings.Web;
@@ -94,6 +95,9 @@ namespace PlatBlogs.Pages.Account
             [StringLength(140, ErrorMessage = "The info must be shorted than {1} characters.")]
             [DataType(DataType.Text)]
             public string Info { get; set; }
+
+            [Display(Name = "Public profile")]
+            public bool PublicProfile { get; set; }
         }
 
         public IActionResult OnGet(string returnUrl = null)
@@ -104,7 +108,6 @@ namespace PlatBlogs.Pages.Account
 
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
-
             ReturnUrl = returnUrl;
             if (ModelState.IsValid)
             {

@@ -7,7 +7,12 @@
 <div class="post">
     <div class="post-date">@Model.Post.DateTime.ToString("dd.MM.yyyy HH:mm")</div>
     <a href="@hrefToAuthor" class="post-author-name name">@Model.Post.Author.FullName</a>
-    <a href="@hrefToAuthor" class="post-author-nickname nickname">@@@Model.Post.Author.UserName</a><br/>
+    <a href="@hrefToAuthor" class="post-author-nickname nickname">@@@Model.Post.Author.UserName</a>
+    @if (!Model.Post.Author.PublicProfile)
+    {
+        <img src="images/lock.png" class="lock-sign"/>
+    }
+    <br/>
     @Model.Post.Message
     <form method="post" asp-controller="Api" asp-action="@(Model.Liked? "Unlike" : "Like")" class="post-like-form">
         <input type="hidden" asp-for="Post.AuthorId"/>

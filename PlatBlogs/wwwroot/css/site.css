@@ -136,6 +136,13 @@ a:link, a:visited, a:hover, a:active  {
     color: black;
 }
 
+.lock-sign {
+    width: 15px;
+    height: 15px;
+    margin-top: -3px;
+    margin-left: 2px;
+}
+
 .lm-statistics {
     width: 100%;
 }
