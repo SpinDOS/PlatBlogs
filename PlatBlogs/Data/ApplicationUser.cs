@@ -15,6 +15,8 @@ namespace PlatBlogs.Data
         public string ShortInfo { get; set; }
         public string AvatarPath { get; set; }
 
+        public bool PublicProfile { get; set; }
+
         public IList<FollowPair> Following { get; set; } = new List<FollowPair>();
         public IList<FollowPair> Followers { get; set; } = new List<FollowPair>();
 
