@@ -19,7 +19,6 @@
     <form method="post" asp-controller="Api" asp-action="@(Model.Liked? "Unlike" : "Like")" class="post-like-form">
         <input type="hidden" asp-for="Post.AuthorId"/>
         <input type="hidden" asp-for="Post.Id"/>
-        <input type="hidden" name="returnUrl" value="@Model.ReturnUrl"/>
         <button type="submit" class="post-like-button @(Model.Liked? "liked-img" : "not-liked-img")">@Model.LikesCount</button>
     </form>
 </div>

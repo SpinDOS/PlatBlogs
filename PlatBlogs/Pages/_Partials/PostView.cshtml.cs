@@ -11,6 +11,5 @@ namespace PlatBlogs.Pages._Partials
         public Post Post { get; set; }
         public bool Liked { get; set; }
         public int LikesCount { get; set; }
-        public string ReturnUrl { get; set; }
     }
 }
