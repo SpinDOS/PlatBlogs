@@ -61,11 +61,9 @@ namespace PlatBlogs.Controllers
 
                 using (var command = conn.CreateCommand())
                 {
-                    command.Parameters.Add(new SqlParameter("FollowerId", myId));
-                    command.Parameters.Add(new SqlParameter("FollowedId", userId));
                     command.CommandText =
-                        "IF NOT EXISTS (SELECT * FROM Followers WHERE FollowerId = @FollowerId AND FollowedId = @FollowedId)" +
-                        "INSERT INTO Followers (FollowerId, FollowedId) VALUES (@FollowerId, @FollowedId)";
+                        $"IF NOT EXISTS (SELECT * FROM Followers WHERE FollowedId='{userId}' AND FollowerId='{myId}')" +
+                        $"INSERT INTO Followers (FollowedId, FollowerId) VALUES ('{userId}', '{myId}');";
                     affectedRows = await command.ExecuteNonQueryAsync();
                 }
             }
@@ -91,10 +89,8 @@ namespace PlatBlogs.Controllers
 
                 using (var command = conn.CreateCommand())
                 {
-                    command.Parameters.Add(new SqlParameter("FollowerId", myId));
-                    command.Parameters.Add(new SqlParameter("FollowedId", userId));
                     command.CommandText =
-                        "DELETE FROM Followers WHERE FollowerId = @FollowerId AND FollowedId = @FollowedId";
+                        $"DELETE FROM Followers WHERE FollowedId='{userId}' AND FollowerId='{myId}'";
                     affectedRows = await command.ExecuteNonQueryAsync();
                 }
             }
