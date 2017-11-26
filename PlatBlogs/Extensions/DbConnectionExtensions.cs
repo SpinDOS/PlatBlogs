@@ -9,7 +9,11 @@ namespace PlatBlogs.Extensions
 {
     public static class DbConnectionExtensions
     {
-        public static string GetIdByName(this IDbConnection conn, string userName)
+        public static void AddWithValue(this IDataParameterCollection parameters, string name, string value)
+        {
+            parameters.Add(new SqlParameter(name, value));
+        }
+        public static string GetUserIdByName(IDbConnection conn, string userName)
         {
             if (string.IsNullOrWhiteSpace(userName))
                 return null;
@@ -22,9 +26,5 @@ namespace PlatBlogs.Extensions
             }
         }
 
-        public static void AddWithValue(this IDataParameterCollection parameters, string name, string value)
-        {
-            parameters.Add(new SqlParameter(name, value));
-        }
     }
 }

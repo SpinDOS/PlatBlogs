@@ -52,12 +52,12 @@ namespace PlatBlogs.Controllers
             using (var conn = DbContext.Database.GetDbConnection())
             {
                 await conn.OpenAsync();
-                var userId = conn.GetUserIdByName(userName);
+                var userId = DbConnectionExtensions.GetUserIdByName(conn, userName);
                 if (userId == null)
                 {
                     return new JsonResult(new { error = $"User {userName} not found" });
                 }
-                var myId = conn.GetUserIdByName(User.Identity.Name);
+                var myId = DbConnectionExtensions.GetUserIdByName(conn, User.Identity.Name);
 
                 using (var command = conn.CreateCommand())
                 {
@@ -82,12 +82,12 @@ namespace PlatBlogs.Controllers
             using (var conn = DbContext.Database.GetDbConnection())
             {
                 await conn.OpenAsync();
-                var userId = conn.GetUserIdByName(userName);
+                var userId = DbConnectionExtensions.GetUserIdByName(conn, userName);
                 if (userId == null)
                 {
                     return new JsonResult(new { error = $"User {userName} not found" });
                 }
-                var myId = conn.GetUserIdByName(User.Identity.Name);
+                var myId = DbConnectionExtensions.GetUserIdByName(conn, User.Identity.Name);
 
                 using (var command = conn.CreateCommand())
                 {
