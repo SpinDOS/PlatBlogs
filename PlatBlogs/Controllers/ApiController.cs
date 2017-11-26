@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using PlatBlogs.Data;
+using PlatBlogs.Extensions;
 
 namespace PlatBlogs.Controllers
 {
@@ -23,12 +24,10 @@ namespace PlatBlogs.Controllers
         }
 
         private ApplicationDbContext DbContext { get; }
-        private UserManager<ApplicationUser> UserManager { get; }
 
-        public ApiController(ApplicationDbContext dbContext, UserManager<ApplicationUser> userManager)
+        public ApiController(ApplicationDbContext dbContext)
         {
             DbContext = dbContext;
-            UserManager = userManager;
         }
 
         //[HttpPost]
@@ -47,14 +46,19 @@ namespace PlatBlogs.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<JsonResult> Follow([FromForm] string userId)
+        public async Task<JsonResult> Follow([FromForm] string userName)
         {
-            var myId = (await UserManager.GetUserAsync(User)).Id;
-            var conn = DbContext.Database.GetDbConnection();
             int affectedRows = 0;
-            try
+            using (var conn = DbContext.Database.GetDbConnection())
             {
                 await conn.OpenAsync();
+                var userId = conn.GetIdByName(userName);
+                if (userId == null)
+                {
+                    return new JsonResult(new { error = $"User {userName} not found" });
+                }
+                var myId = conn.GetIdByName(User.Identity.Name);
+
                 using (var command = conn.CreateCommand())
                 {
                     command.Parameters.Add(new SqlParameter("FollowerId", myId));
@@ -65,23 +69,26 @@ namespace PlatBlogs.Controllers
                     affectedRows = await command.ExecuteNonQueryAsync();
                 }
             }
-            finally
-            {
-                conn.Close();
-            }
-            return new JsonResult(new { success = affectedRows == 1 });
+            return affectedRows == 1? 
+                new JsonResult(new { followed = true }) :
+                new JsonResult(new { followed = true, warning = $"User {userName} was already followed" });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<JsonResult> Unfollow([FromForm] string userId)
+        public async Task<JsonResult> Unfollow([FromForm] string userName)
         {
-            var myId = (await UserManager.GetUserAsync(User)).Id;
-            var conn = DbContext.Database.GetDbConnection();
             int affectedRows = 0;
-            try
+            using (var conn = DbContext.Database.GetDbConnection())
             {
                 await conn.OpenAsync();
+                var userId = conn.GetIdByName(userName);
+                if (userId == null)
+                {
+                    return new JsonResult(new { error = $"User {userName} not found" });
+                }
+                var myId = conn.GetIdByName(User.Identity.Name);
+
                 using (var command = conn.CreateCommand())
                 {
                     command.Parameters.Add(new SqlParameter("FollowerId", myId));
@@ -91,11 +98,9 @@ namespace PlatBlogs.Controllers
                     affectedRows = await command.ExecuteNonQueryAsync();
                 }
             }
-            finally
-            {
-                conn.Close();
-            }
-            return new JsonResult(new { success = affectedRows == 1 });
+            return affectedRows == 1 ?
+                new JsonResult(new { followed = false }) :
+                new JsonResult(new { followed = false, warning = $"User {userName} was not followed by you" });
         }
     }
 }
