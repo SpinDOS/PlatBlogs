@@ -48,7 +48,7 @@
     @if (Model.Followed.HasValue)
     {
         <form method="post" asp-controller="Api" asp-action="@followAction">
-            <input type="hidden" name="userId" value="@Model.User.Id"/>
+            <input type="hidden" name="userName" value="@Model.User.UserName"/>
             <button type="submit" class="platblogs-button">@followAction</button>
         </form> 
     }

@@ -13,6 +13,5 @@ namespace PlatBlogs.Pages._Partials
         public int FollowingsCount { get; set; }
         public int FollowersCount { get; set; }
         public bool? Followed { get; set; }
-        public string ReturnUrl { get; set; }
     }
 }
