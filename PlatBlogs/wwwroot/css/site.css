@@ -106,6 +106,7 @@ a:link, a:visited, a:hover, a:active  {
 
 .right-menu {
     margin-left: 295px;
+    min-height: 500px;
 }
 
 .lm-image-link {
@@ -159,6 +160,10 @@ a:link, a:visited, a:hover, a:active  {
     padding-right: 5px;
 }
 
+.lm-statistics-block:hover {
+    color: #aaa;
+}
+
 .lm-hr {
     display: none;
     width: 100%;
@@ -176,6 +181,7 @@ a:link, a:visited, a:hover, a:active  {
 
     .right-menu {
         margin-left: 0;
+        min-height: 0;
     }
 
     .lm-image-link {

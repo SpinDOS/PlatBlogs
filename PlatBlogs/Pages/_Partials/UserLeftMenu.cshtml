@@ -18,7 +18,7 @@
         <a href="@hrefToUser" class="lm-nickname nickname">@@@Model.User.UserName</a>
         @if (!Model.User.PublicProfile)
         {
-            <img src="images/lock.png" class="lock-sign"/>
+            <img src="/images/lock.png" class="lock-sign"/>
         }
     </p>
         
@@ -43,11 +43,15 @@
     <div class="lm-statistics"> 
         <a href="@hrefToUser" class="lm-statistics-block">Posts<br>@Model.PostCount</a>
         <a href="/followings/@Model.User.UserName" class="lm-statistics-block">Following<br>@Model.FollowingsCount</a>
-        <a href="/followers/@Model.User.UserName" class="lm-statistics-block">Followers<br>@Model.FollowersCount</a>
+        <a href="/followers/@Model.User.UserName" class="lm-statistics-block">
+            Followers
+            <br>
+            <span id="followers-count">@Model.FollowersCount</span>
+        </a>
     </div>
     @if (Model.Followed.HasValue)
     {
-        <form method="post" asp-controller="Api" asp-action="@followAction">
+        <form method="post" asp-controller="Api" asp-action="@followAction" id="follow-form">
             <input type="hidden" name="userName" value="@Model.User.UserName"/>
             <button type="submit" class="platblogs-button">@followAction</button>
         </form> 
