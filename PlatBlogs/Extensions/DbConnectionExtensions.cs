@@ -22,7 +22,17 @@ namespace PlatBlogs.Extensions
                 cmd.Parameters.AddWithValue("userName", userName);
                 cmd.CommandText = "SELECT Id FROM AspNetUsers " +
                                   "WHERE UserName=@userName";
-                return cmd.ExecuteScalar()?.ToString();
+                return cmd.ExecuteScalar() as string;
+            }
+        }
+
+        public static bool CheckFollowing(IDbConnection conn, string followedId, string followerId)
+        {
+            using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = "SELECT 'NOTUSED' FROM Followers " +
+                                  $"WHERE followedId='{followedId}' AND followerId='{followerId}'";
+                return cmd.ExecuteScalar() != null;
             }
         }
 

@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -55,6 +57,13 @@ namespace PlatBlogs
             // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=532713
             services.Configure<EmailCredentials>(Configuration.GetSection("email"));
             services.AddSingleton<IEmailSender, EmailSender>();
+
+            services.AddTransient<IDbConnection, SqlConnection>(provider =>
+                {
+                    var result = new SqlConnection(Configuration.GetConnectionString("DefaultConnection"));
+                    result.Open();
+                    return result;
+                });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
