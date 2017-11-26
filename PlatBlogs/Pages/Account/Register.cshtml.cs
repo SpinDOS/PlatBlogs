@@ -119,27 +119,22 @@ namespace PlatBlogs.Pages.Account
                     DateOfBirth = Input.DateOfBirth,
                     City = Input.City,
                     ShortInfo = Input.Info,
-                };
+                    AvatarPath = Input.Avatar != null? $"/avatars/{Input.Nickname}{Path.GetExtension(Input.Avatar.FileName)}":
+                        "/avatars/_no_image_.png",
+            };
                 var result = await _userManager.CreateAsync(user, Input.Password);
                 if (result.Succeeded)
                 {
                     if (Input.Avatar != null)
                     {
-                        user.AvatarPath = Path.Combine("/avatars",
-                            user.UserName + Path.GetExtension(Input.Avatar.FileName));
                         using (var file = System.IO.File.Open(user.AvatarFilePath(_environment), FileMode.Create))
                         {
                             await Input.Avatar.CopyToAsync(file);
                         }
                     }
-                    else
-                    {
-                        user.AvatarPath = "/avatars/_no_image_.png";
-                    }
 
                     _logger.LogInformation("User created a new account with password.");
 
-                    var id = user.Id;
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                     var callbackUrl = Url.EmailConfirmationLink(user.Id, code, Request.Scheme);
                     await _emailSender.SendEmailConfirmationAsync(Input.Email, callbackUrl);
