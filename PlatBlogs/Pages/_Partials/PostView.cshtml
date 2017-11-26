@@ -21,9 +21,4 @@
         <input type="hidden" name="postId" value="@Model.Post.Id"/>
         <button type="submit" class="post-like-button @(Model.Liked? "liked-img" : "not-liked-img")">@Model.LikesCount</button>
     </form>
-    
-    <form method="post" asp-controller="Api" asp-action="Follow">
-        <input type="text" name="userName" value="user11"/>
-        <button type="submit"></button>
-    </form>
 </div>
