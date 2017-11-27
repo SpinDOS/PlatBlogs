@@ -18,13 +18,83 @@ namespace PlatBlogs.Controllers
     [Authorize]
     public class ApiController : Controller
     {
-        private DbConnection DbConnection { get; set; }
+        private DbConnection DbConnection { get; }
         public ApiController(DbConnection dbConnection) { DbConnection = dbConnection; }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<JsonResult> Like([FromForm] string author, [FromForm] int postId)
+        {
+            var authorId = await DbConnection.GetUserIdByNameAsync(author);
+            if (authorId == null)
+            {
+                return new JsonResult(new { error = $"User {author} not found" });
+            }
+            var myId = await DbConnection.GetUserIdByNameAsync(User.Identity.Name);
+            if (!await DbConnection.IsOpenedAsync(authorId, myId))
+            {
+                return new JsonResult(new { error = $"Cannot access {author}'s posts: private profile" });
+            }
+
+            using (var command = DbConnection.CreateCommand())
+            {
+                command.CommandText = $"SELECT * FROM Posts WHERE AuthorId='{authorId}' AND Id='{postId}'";
+                if (await command.ExecuteScalarAsync() == null)
+                {
+                    return new JsonResult(new { error = $"{author}'s post {postId} not found" });
+                }
+            }
+
+            using (var command = DbConnection.CreateCommand())
+            {
+                command.CommandText =
+                    "IF NOT EXISTS " +
+                        $"(SELECT * FROM Likes WHERE LikerId='{myId}' AND LikedUserId='{authorId}' AND LikedPostId='{postId}') " +
+                    $"INSERT INTO Likes (LikerId, LikedUserId, LikedPostId) VALUES ('{myId}', '{authorId}', '{postId}');";
+                return await command.ExecuteNonQueryAsync() == 1? 
+                    new JsonResult(new { liked = true }) :
+                    new JsonResult(new { liked = true, warning = $"{author}'s post {postId} was already liked" });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<JsonResult> Unlike([FromForm] string author, [FromForm] int postId)
+        {
+            var authorId = await DbConnection.GetUserIdByNameAsync(author);
+            if (authorId == null)
+            {
+                return new JsonResult(new { error = $"User {author} not found" });
+            }
+            var myId = await DbConnection.GetUserIdByNameAsync(User.Identity.Name);
+
+            using (var command = DbConnection.CreateCommand())
+            {
+                command.CommandText = $"SELECT * FROM Posts WHERE AuthorId='{authorId}' AND Id='{postId}'";
+                if (await command.ExecuteScalarAsync() == null)
+                {
+                    return new JsonResult(new { error = $"{author}'s post {postId} not found" });
+                }
+            }
+
+            using (var command = DbConnection.CreateCommand())
+            {
+                command.CommandText =
+                    $"DELETE FROM Likes WHERE LikerId='{myId}' AND LikedUserId='{authorId}' AND LikedPostId='{postId}'";
+                return await command.ExecuteNonQueryAsync() == 1 ?
+                    new JsonResult(new { liked = false }) :
+                    new JsonResult(new { liked = false, warning = $"{author}'s post {postId} was not liked" });
+            }
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<JsonResult> Follow([FromForm] string userName)
         {
+            if (User.Identity.Name == userName)
+            {
+                return new JsonResult(new { error = "You cannot follow yourself" });
+            }
             var userId = await DbConnection.GetUserIdByNameAsync(userName);
             if (userId == null)
             {

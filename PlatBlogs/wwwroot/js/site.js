@@ -1,11 +1,9 @@
 ﻿// Write your Javascript code.
 
-$(document).ready(function () {
-    var followersCountBlock = $("#followers-count");
-    $("#follow-form").submit(function (e) {
+function platBlogsAjaxHandler(form, mainFieldName, onTrue, onFalse, onError) {
+    form.submit(function (e) {
         e.preventDefault();
 
-        var form = $(this);
         var submit = form.find(":submit");
         submit.prop("disabled", true);
 
@@ -19,33 +17,76 @@ $(document).ready(function () {
                 if (data.error) {
                     alert(data.error);
                 } else {
-                    var diff;
-                    if (data.followed) {
-                        form.attr("action", url.replace("Follow", "Unfollow"));
-                        submit.text("Unfollow");
-                        diff = 1;
+                    if (data[mainFieldName]) {
+                        onTrue(data.warning);
                     } else {
-                        form.attr("action", url.replace("Unfollow", "Follow"));
-                        submit.text("Follow");
-                        diff = -1;
+                        onFalse(data.warning);
                     }
 
                     if (data.warning) {
                         alert(data.warning);
-                    } else {
-                        var followersCount = parseInt(followersCountBlock.text());
-                        followersCountBlock.text(followersCount + diff);
-                    }
+                    } 
                 }
             },
-            error: function() {
-                alert("Error sending follow request");
+            error: function () {
+                onError();
             },
-            complete: function() {
+            complete: function () {
                 submit.prop("disabled", false);
             }
         });
 
+    });
+}
+
+$(document).ready(function () {
+    (function() {
+        var followersCountBlock = $("#followers-count");
+        var form = $("#follow-form");
+        var submit = form.find(":submit");
+        platBlogsAjaxHandler(form, "followed",
+            function (withWarning) {
+                form.attr("action", form.attr("action").replace("Follow", "Unfollow"));
+                submit.text("Unfollow");
+                if (!withWarning) {
+                    var followersCount = parseInt(followersCountBlock.text());
+                    followersCountBlock.text(followersCount + 1);
+                }
+            },
+            function (withWarning) {
+                form.attr("action", form.attr("action").replace("Unfollow", "Follow"));
+                submit.text("Follow");
+                if (!withWarning) {
+                    var followersCount = parseInt(followersCountBlock.text());
+                    followersCountBlock.text(followersCount - 1);
+                }
+            },
+            function() {
+                alert("Error sending follow request");
+            });
+    })();
+
+    $(".post-like-form").each(function() {
+        var form = $(this);
+        var submit = form.find(":submit");
+        platBlogsAjaxHandler(form, "liked",
+            function (withWarning) {
+                form.attr("action", form.attr("action").replace("Like", "Unlike"));
+                submit.addClass("liked-img").removeClass("not-liked-img");
+                if (!withWarning) {
+                    submit.text(parseInt(submit.text()) + 1);
+                }
+            },
+            function (withWarning) {
+                form.attr("action", form.attr("action").replace("Unlike", "Like"));
+                submit.addClass("not-liked-img").removeClass("liked-img");
+                if (!withWarning) {
+                    submit.text(parseInt(submit.text()) - 1);
+                }
+            },
+            function () {
+                alert("Error sending like request");
+            });
     });
 });
 

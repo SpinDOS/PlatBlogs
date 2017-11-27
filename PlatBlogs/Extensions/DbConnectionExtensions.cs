@@ -21,9 +21,9 @@ namespace PlatBlogs.Extensions
                 return null;
             using (var cmd = conn.CreateCommand())
             {
-                cmd.Parameters.AddWithValue("userName", userName);
+                cmd.Parameters.AddWithValue("normalizedUserName", userName.ToUpper());
                 cmd.CommandText = "SELECT Id FROM AspNetUsers " +
-                                  "WHERE UserName=@userName";
+                                  "WHERE NormalizedUserName=@normalizedUserName";
                 return await cmd.ExecuteScalarAsync() as string;
             }
         }
@@ -40,13 +40,15 @@ namespace PlatBlogs.Extensions
 
         public static async Task<bool> IsOpenedAsync(this DbConnection conn, string viewedId, string viewerId)
         {
+            if (viewedId == viewerId)
+                return true;
             using (var cmd = conn.CreateCommand())
             {
-                cmd.CommandText = $"SELECT PublicProfile FROM AspNetUsers WHERE Id={viewedId}'";
+                cmd.CommandText = $"SELECT PublicProfile FROM AspNetUsers WHERE Id='{viewedId}'";
                 if ((bool) await cmd.ExecuteScalarAsync())
                     return true;
             }
-            return await CheckFollowingAsync(conn, viewedId, viewerId);
+            return await CheckFollowingAsync(conn, viewerId, viewedId);
         }
 
     }
