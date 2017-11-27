@@ -1,0 +1,13 @@
+﻿@model PlatBlogs.Views._Partials.LoadMoreModel
+
+<form method="get" action="@Model.Action" class="load-more-form">
+    <input type="hidden" name="offset" value="@Model.Offset"/>
+    @if (Model.HasAdditionalFields)
+    {
+        foreach (var pair in Model.AdditionalFields)
+        {
+            <input type="hidden" name="@pair.Key" value="@pair.Value"/>
+        }
+    }
+    <input type="submit" class="platblogs-button" value="Load more"/>
+</form>

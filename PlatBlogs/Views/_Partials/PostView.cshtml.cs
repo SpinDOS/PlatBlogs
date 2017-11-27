@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using PlatBlogs.Data;
 using PlatBlogs.Extensions;
 
-namespace PlatBlogs.Pages._Partials
+namespace PlatBlogs.Views._Partials
 {
     public class PostView
     {
