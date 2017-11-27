@@ -1,6 +1,6 @@
-﻿@using System.Data
-@using _Partials
-@inject IDbConnection DbConnection
+﻿@using System.Data.Common
+@using PlatBlogs.Pages._Partials
+@inject DbConnection DbConnection
 @inject UserManager<ApplicationUser> UserManager
 
 <!DOCTYPE html>
@@ -53,7 +53,7 @@
 </nav>
 <div class="container body-content">
     @await Html.PartialAsync("_Partials/UserLeftMenu",
-        new UserLeftMenu((ViewData["User"] as ApplicationUser)?? await UserManager.GetUserAsync(User), DbConnection, User))
+        UserLeftMenu.FromApplicationUser((ViewData["User"] as ApplicationUser)?? await UserManager.GetUserAsync(User), DbConnection, User))
     <div class="right-menu">
         @RenderBody()
     </div>

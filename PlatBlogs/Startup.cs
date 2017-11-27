@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
@@ -58,7 +59,7 @@ namespace PlatBlogs
             services.Configure<EmailCredentials>(Configuration.GetSection("email"));
             services.AddSingleton<IEmailSender, EmailSender>();
 
-            services.AddTransient<IDbConnection, SqlConnection>(provider =>
+            services.AddTransient<DbConnection, SqlConnection>(provider =>
                 {
                     var result = new SqlConnection(Configuration.GetConnectionString("DefaultConnection"));
                     result.Open();

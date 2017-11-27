@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Data;
+using System.Data.Common;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,7 +15,7 @@ namespace PlatBlogs.Pages
 {
     public class NewPostModel : PageModel
     {
-        public NewPostModel(IDbConnection dbConnection) { DbConnection = dbConnection; }
+        public NewPostModel(DbConnection dbConnection) { DbConnection = dbConnection; }
         public class InputModel
         {
             [Required]
@@ -26,9 +27,9 @@ namespace PlatBlogs.Pages
         [BindProperty]
         public InputModel Input { get; set; }
 
-        private IDbConnection DbConnection { get; set; }
+        private DbConnection DbConnection { get; set; }
 
-        public IActionResult OnPost()
+        public async Task<IActionResult> OnPost()
         {
             if (ModelState.IsValid)
             {
@@ -36,7 +37,7 @@ namespace PlatBlogs.Pages
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@text", Input.Text);
-                    cmd.Parameters.AddWithValue("@author", DbConnectionExtensions.GetUserIdByName(DbConnection, User.Identity.Name));
+                    cmd.Parameters.AddWithValue("@author", await DbConnection.GetUserIdByNameAsync(User.Identity.Name));
 
                     cmd.CommandText = "NewPost";
                     if (cmd.ExecuteNonQuery() == 1)
