@@ -53,7 +53,7 @@
 </nav>
 <div class="container body-content">
     @await Html.PartialAsync("_Partials/UserLeftMenu",
-        UserLeftMenu.FromApplicationUser((ViewData["User"] as ApplicationUser)?? await UserManager.GetUserAsync(User), DbConnection, User))
+        await UserLeftMenu.FromApplicationUser((ViewData["User"] as ApplicationUser)?? await UserManager.GetUserAsync(User), DbConnection, User))
     <div class="right-menu">
         @RenderBody()
     </div>
