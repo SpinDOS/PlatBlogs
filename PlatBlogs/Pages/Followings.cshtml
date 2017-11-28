@@ -1,0 +1,13 @@
+﻿@page "{username}/{offset?}"
+@model PlatBlogs.Pages.FollowingsModel
+@{
+    ViewData["Title"] = $"{Model.InspectedUser.UserName}'s followings";
+    ViewData["User"] = Model.InspectedUser;
+    Layout = "~/Pages/_Layout.cshtml";
+}
+
+<h2>@($"{Model.InspectedUser.FullName}'s followings")</h2>
+
+@await Html.PartialAsync("~/Views/_Partials/UserListWithLoadMore.cshtml", Model.UsersModel)
+
+
