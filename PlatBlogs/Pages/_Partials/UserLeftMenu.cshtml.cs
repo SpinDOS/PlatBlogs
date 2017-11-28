@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -23,25 +24,22 @@ namespace PlatBlogs.Pages._Partials
             var result = new UserLeftMenu() {User = user};
             var currentUserId = await conn.GetUserIdByNameAsync(currentUser.Identity.Name);
 
-            if (user.UserName != currentUser.Identity.Name)
+            result.Followed = null;
+            if (user.Id != currentUserId)
                 result.Followed = await conn.CheckFollowingAsync(user.Id, currentUserId);
 
             using (var cmd = conn.CreateCommand())
             {
-                cmd.CommandText = $"SELECT COUNT(*) FROM Posts WHERE AuthorId='{user.Id}'";
-                result.PostCount = (int) await cmd.ExecuteScalarAsync();
-            }
-
-            using (var cmd = conn.CreateCommand())
-            {
-                cmd.CommandText = $"SELECT COUNT(*) FROM Followers WHERE FollowedId='{user.Id}'";
-                result.FollowersCount = (int) await cmd.ExecuteScalarAsync();
-            }
-
-            using (var cmd = conn.CreateCommand())
-            {
-                cmd.CommandText = $"SELECT COUNT(*) FROM Followers WHERE FollowerId='{user.Id}'";
-                result.FollowingsCount = (int) await cmd.ExecuteScalarAsync();
+                cmd.CommandText = "GetUserPostsFollowersFollowingsCount";
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@userId", user.Id);
+                cmd.Parameters.Add(new SqlParameter("@postsCount", SqlDbType.Int) {Direction = ParameterDirection.Output});
+                cmd.Parameters.Add(new SqlParameter("@followingsCount", SqlDbType.Int) { Direction = ParameterDirection.Output });
+                cmd.Parameters.Add(new SqlParameter("@followersCount", SqlDbType.Int) { Direction = ParameterDirection.Output });
+                await cmd.ExecuteNonQueryAsync();
+                result.PostCount = (int) cmd.Parameters["@postsCount"].Value;
+                result.FollowingsCount = (int) cmd.Parameters["@followingsCount"].Value;
+                result.FollowersCount = (int) cmd.Parameters["@followersCount"].Value;
             }
             return result;
         }
