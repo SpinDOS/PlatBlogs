@@ -37,9 +37,37 @@ function platBlogsAjaxHandler(form, mainFieldName, onTrue, onFalse, onError) {
         });
 
     });
+};
+
+function handleLoadMore() {
+    var form = $(this);
+    form.submit(function (e) {
+        e.preventDefault();
+        var submit = form.find(":submit");
+        submit.prop("disabled", true);
+
+        var url = form.attr("action");
+
+        $.ajax({
+            type: form.attr("method"),
+            url: "/Api/" + url,
+            data: form.serialize(), // serializes the form's elements.
+            success: function (data) {
+                var received = $(data);
+                received.filter(".load-more-form").each(handleLoadMore);
+                form.replaceWith(received);
+            },
+            error: function () {
+                alert("Cannot load more data");
+                submit.prop("disabled", false);
+            }
+        });
+
+    });
 }
 
 $(document).ready(function () {
+    $(".load-more-form").each(handleLoadMore);
     (function() {
         var followersCountBlock = $("#followers-count");
         var form = $("#follow-form");

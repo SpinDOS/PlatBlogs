@@ -12,6 +12,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using PlatBlogs.Data;
 using PlatBlogs.Extensions;
+using PlatBlogs.Helpers;
+using PlatBlogs.Pages;
+using PlatBlogs.Pages._Partials;
+using PlatBlogs.Views;
+using PlatBlogs.Views._Partials;
 
 namespace PlatBlogs.Controllers
 {
@@ -19,7 +24,20 @@ namespace PlatBlogs.Controllers
     public class ApiController : Controller
     {
         private DbConnection DbConnection { get; }
-        public ApiController(DbConnection dbConnection) { DbConnection = dbConnection; }
+        private ApplicationDbContext DbContext { get; }
+
+        public ApiController(ApplicationDbContext dbContext)
+        {
+            DbContext = dbContext;
+            DbConnection = DbContext.Database.GetDbConnection();
+            DbConnection.Open();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+            DbConnection.Dispose();
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -133,5 +151,28 @@ namespace PlatBlogs.Controllers
                     new JsonResult(new { followed = false, warning = $"User {userName} was not followed by you" });
             }
         }
+
+        [HttpGet("/Api/Followers/{userName}")]
+        public async Task<IActionResult> Followers(string userName, [FromQuery] int offset = 0)
+        {
+            var tuple = await FollowingsModelsBuilder.BuildUsersModelAsync(DbContext, userName, offset, FollowersModel.UsersPortion, false);
+            if (tuple == null)
+            {
+                return NotFound();
+            }
+            return PartialView("~/Views/_Partials/UserListWithLoadMore.cshtml", tuple.Item2);
+        }
+
+        [HttpGet("/Api/Followings/{userName}")]
+        public async Task<IActionResult> Followings(string userName, [FromQuery] int offset = 0)
+        {
+            var tuple = await FollowingsModelsBuilder.BuildUsersModelAsync(DbContext, userName, offset, FollowingsModel.UsersPortion, true);
+            if (tuple == null)
+            {
+                return NotFound();
+            }
+            return PartialView("~/Views/_Partials/UserListWithLoadMore.cshtml", tuple.Item2);
+        }
+
     }
 }
