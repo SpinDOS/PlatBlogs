@@ -13,7 +13,7 @@ namespace PlatBlogs.Helpers
         // Following and Followers pages are very similar, so 
         // this class implements logic for both
         public static async Task<Tuple<ApplicationUser, UserListWithLoadMoreModel>> BuildUsersModelAsync(ApplicationDbContext dbContext,
-            string userName, int offset, int count, bool followINGModel)
+            string userName, int offset, int count, bool ajax, bool followINGModel)
         {
             var followEnding = followINGModel ? "ing" : "er";
 
@@ -25,8 +25,14 @@ namespace PlatBlogs.Helpers
             }
 
             offset = Math.Max(offset, 0);
+            if (!ajax)
+            {
+                count += offset;
+                if (count < 0)
+                    count = int.MaxValue;
+                offset = 0;
+            }
             var overflow = count + offset + 1 < 0;
-            count = Math.Min(count, int.MaxValue - offset - 1);
 
             query = "SELECT * FROM AspNetUsers WHERE Id IN " +
                     $"(SELECT Followe{(followINGModel ? "d" : "r")}Id FROM Followers " +

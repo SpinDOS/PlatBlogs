@@ -8,11 +8,13 @@ function platBlogsAjaxHandler(form, mainFieldName, onTrue, onFalse, onError) {
         submit.prop("disabled", true);
 
         var url = form.attr("action");
+        var formData = form.serialize();
+        formData.ajax = true;
 
         $.ajax({
             type: form.attr("method"),
             url: url,
-            data: form.serialize(), // serializes the form's elements.
+            data: form.serialize(),
             success: function (data) {
                 if (data.error) {
                     alert(data.error);
@@ -25,7 +27,7 @@ function platBlogsAjaxHandler(form, mainFieldName, onTrue, onFalse, onError) {
 
                     if (data.warning) {
                         alert(data.warning);
-                    } 
+                    }
                 }
             },
             error: function () {
@@ -48,10 +50,12 @@ function handleLoadMore() {
 
         var url = form.attr("action");
 
+        $('<input type="hidden" name="ajax" value="true">').appendTo(form);
+
         $.ajax({
             type: form.attr("method"),
-            url: "/Api/" + url,
-            data: form.serialize(), // serializes the form's elements.
+            url: url,
+            data: form.serialize(),
             success: function (data) {
                 var received = $(data);
                 received.filter(".load-more-form").each(handleLoadMore);
@@ -68,7 +72,7 @@ function handleLoadMore() {
 
 $(document).ready(function () {
     $(".load-more-form").each(handleLoadMore);
-    (function() {
+    (function () {
         var followersCountBlock = $("#followers-count");
         var form = $("#follow-form");
         var submit = form.find(":submit");
@@ -89,12 +93,12 @@ $(document).ready(function () {
                     followersCountBlock.text(followersCount - 1);
                 }
             },
-            function() {
+            function () {
                 alert("Error sending follow request");
             });
     })();
 
-    $(".post-like-form").each(function() {
+    $(".post-like-form").each(function () {
         var form = $(this);
         var submit = form.find(":submit");
         platBlogsAjaxHandler(form, "liked",

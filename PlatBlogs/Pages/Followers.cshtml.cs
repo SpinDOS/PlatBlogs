@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -21,20 +22,18 @@ namespace PlatBlogs.Pages
 
         public ApplicationUser InspectedUser { get; set; }
         public UserListWithLoadMoreModel UsersModel { get; set; }
+        public bool AjaxResult { get; set; }
 
-        public async Task<IActionResult> OnGetAsync(string userName, int offset = 0)
+        public async Task<IActionResult> OnGetAsync(string userName, [FromQuery] int offset = 0, bool ajax = false)
         {
-            offset = Math.Max(offset, 0) + UsersPortion;
-            if (offset < 0)
-                offset = int.MaxValue;
-
-            var tuple = await FollowingsModelsBuilder.BuildUsersModelAsync(DbContext, userName, 0, offset, false);
+            var tuple = await FollowingsModelsBuilder.BuildUsersModelAsync(DbContext, userName, offset, UsersPortion, ajax, false);
             if (tuple == null)
             {
                 return NotFound();
             }
             InspectedUser = tuple.Item1;
             UsersModel = tuple.Item2;
+            AjaxResult = ajax;
             return Page();
         }
 
@@ -69,7 +68,7 @@ namespace PlatBlogs.Pages
         //        };
         //        users.RemoveAt(users.Count - 1);
         //    }
-            
+
         //    var userList = new UserListWithLoadMoreModel()
         //    {
         //        Users = users,

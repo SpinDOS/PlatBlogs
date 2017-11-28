@@ -1,5 +1,13 @@
-﻿@page "{username}/{offset?}"
+﻿@page "{username}"
 @model PlatBlogs.Pages.FollowingsModel
+
+@if (Model.AjaxResult)
+{
+    Layout = null;
+    @await Html.PartialAsync("~/Views/_Partials/UserListWithLoadMore.cshtml", Model.UsersModel)
+    return;
+}
+
 @{
     ViewData["Title"] = $"{Model.InspectedUser.UserName}'s followings";
     ViewData["User"] = Model.InspectedUser;

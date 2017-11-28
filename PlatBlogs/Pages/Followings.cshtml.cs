@@ -18,20 +18,18 @@ namespace PlatBlogs.Pages
 
         public ApplicationUser InspectedUser { get; set; }
         public UserListWithLoadMoreModel UsersModel { get; set; }
+        public bool AjaxResult { get; set; }
 
-        public async Task<IActionResult> OnGetAsync(string userName, int offset = 0)
+        public async Task<IActionResult> OnGetAsync(string userName, int offset = 0, bool ajax = false)
         {
-            offset = Math.Max(offset, 0) + UsersPortion;
-            if (offset < 0)
-                offset = int.MaxValue;
-
-            var tuple = await FollowingsModelsBuilder.BuildUsersModelAsync(DbContext, userName, 0, offset, true);
+            var tuple = await FollowingsModelsBuilder.BuildUsersModelAsync(DbContext, userName, offset, UsersPortion, ajax, true);
             if (tuple == null)
             {
                 return NotFound();
             }
             InspectedUser = tuple.Item1;
             UsersModel = tuple.Item2;
+            AjaxResult = ajax;
             return Page();
         }
 

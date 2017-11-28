@@ -151,28 +151,5 @@ namespace PlatBlogs.Controllers
                     new JsonResult(new { followed = false, warning = $"User {userName} was not followed by you" });
             }
         }
-
-        [HttpGet("/Api/Followers/{userName}")]
-        public async Task<IActionResult> Followers(string userName, [FromQuery] int offset = 0)
-        {
-            var tuple = await FollowingsModelsBuilder.BuildUsersModelAsync(DbContext, userName, offset, FollowersModel.UsersPortion, false);
-            if (tuple == null)
-            {
-                return NotFound();
-            }
-            return PartialView("~/Views/_Partials/UserListWithLoadMore.cshtml", tuple.Item2);
-        }
-
-        [HttpGet("/Api/Followings/{userName}")]
-        public async Task<IActionResult> Followings(string userName, [FromQuery] int offset = 0)
-        {
-            var tuple = await FollowingsModelsBuilder.BuildUsersModelAsync(DbContext, userName, offset, FollowingsModel.UsersPortion, true);
-            if (tuple == null)
-            {
-                return NotFound();
-            }
-            return PartialView("~/Views/_Partials/UserListWithLoadMore.cshtml", tuple.Item2);
-        }
-
     }
 }
