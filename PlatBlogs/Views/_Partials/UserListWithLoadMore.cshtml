@@ -11,7 +11,7 @@ else
     @(Model.DefaultText)
 }
 
-@if (Model.LoadMoreModel != null)
+@if (Model.MoreUsersExist)
 {
     @await Html.PartialAsync("~/Views/_Partials/LoadMore.cshtml", Model.LoadMoreModel)
 }
