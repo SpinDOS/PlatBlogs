@@ -8,8 +8,6 @@ function platBlogsAjaxHandler(form, mainFieldName, onTrue, onFalse, onError) {
         submit.prop("disabled", true);
 
         var url = form.attr("action");
-        var formData = form.serialize();
-        formData.ajax = true;
 
         $.ajax({
             type: form.attr("method"),
@@ -41,6 +39,57 @@ function platBlogsAjaxHandler(form, mainFieldName, onTrue, onFalse, onError) {
     });
 };
 
+function handleFollow() {
+    var followersCountBlock = $("#followers-count");
+    var form = $("#follow-form");
+    var submit = form.find(":submit");
+    platBlogsAjaxHandler(form, "followed",
+        function (withWarning) {
+            form.attr("action", form.attr("action").replace("Follow", "Unfollow"));
+            submit.text("Unfollow");
+            if (!withWarning) {
+                var followersCount = parseInt(followersCountBlock.text());
+                followersCountBlock.text(followersCount + 1);
+            }
+        },
+        function (withWarning) {
+            form.attr("action", form.attr("action").replace("Unfollow", "Follow"));
+            submit.text("Follow");
+            if (!withWarning) {
+                var followersCount = parseInt(followersCountBlock.text());
+                followersCountBlock.text(followersCount - 1);
+            }
+        },
+        function () {
+            alert("Error sending follow request");
+        }
+    );
+};
+
+function handleLike() {
+    var form = $(this);
+    var submit = form.find(":submit");
+    platBlogsAjaxHandler(form, "liked",
+        function (withWarning) {
+            form.attr("action", form.attr("action").replace("Like", "Unlike"));
+            submit.addClass("liked-img").removeClass("not-liked-img");
+            if (!withWarning) {
+                submit.text(parseInt(submit.text()) + 1);
+            }
+        },
+        function (withWarning) {
+            form.attr("action", form.attr("action").replace("Unlike", "Like"));
+            submit.addClass("not-liked-img").removeClass("liked-img");
+            if (!withWarning) {
+                submit.text(parseInt(submit.text()) - 1);
+            }
+        },
+        function () {
+            alert("Error sending like request");
+        }
+    );
+};
+
 function handleLoadMore() {
     var form = $(this);
     form.submit(function (e) {
@@ -57,9 +106,10 @@ function handleLoadMore() {
             url: url,
             data: form.serialize(),
             success: function (data) {
-                var received = $(data);
-                received.filter(".load-more-form").each(handleLoadMore);
-                form.replaceWith(received);
+                var tempBlock = $("<div>" + data + "</div>");
+                tempBlock.find(".load-more-form").each(handleLoadMore);
+                tempBlock.find(".post-like-form").each(handleLike);
+                form.replaceWith(tempBlock.children());
             },
             error: function () {
                 alert("Cannot load more data");
@@ -68,57 +118,13 @@ function handleLoadMore() {
         });
 
     });
-}
+};
+
+
 
 $(document).ready(function () {
+    handleFollow();
     $(".load-more-form").each(handleLoadMore);
-    (function () {
-        var followersCountBlock = $("#followers-count");
-        var form = $("#follow-form");
-        var submit = form.find(":submit");
-        platBlogsAjaxHandler(form, "followed",
-            function (withWarning) {
-                form.attr("action", form.attr("action").replace("Follow", "Unfollow"));
-                submit.text("Unfollow");
-                if (!withWarning) {
-                    var followersCount = parseInt(followersCountBlock.text());
-                    followersCountBlock.text(followersCount + 1);
-                }
-            },
-            function (withWarning) {
-                form.attr("action", form.attr("action").replace("Unfollow", "Follow"));
-                submit.text("Follow");
-                if (!withWarning) {
-                    var followersCount = parseInt(followersCountBlock.text());
-                    followersCountBlock.text(followersCount - 1);
-                }
-            },
-            function () {
-                alert("Error sending follow request");
-            });
-    })();
-
-    $(".post-like-form").each(function () {
-        var form = $(this);
-        var submit = form.find(":submit");
-        platBlogsAjaxHandler(form, "liked",
-            function (withWarning) {
-                form.attr("action", form.attr("action").replace("Like", "Unlike"));
-                submit.addClass("liked-img").removeClass("not-liked-img");
-                if (!withWarning) {
-                    submit.text(parseInt(submit.text()) + 1);
-                }
-            },
-            function (withWarning) {
-                form.attr("action", form.attr("action").replace("Unlike", "Like"));
-                submit.addClass("not-liked-img").removeClass("liked-img");
-                if (!withWarning) {
-                    submit.text(parseInt(submit.text()) - 1);
-                }
-            },
-            function () {
-                alert("Error sending like request");
-            });
-    });
+    $(".post-like-form").each(handleLike);
 });
 
