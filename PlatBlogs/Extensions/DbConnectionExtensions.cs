@@ -60,6 +60,7 @@ namespace PlatBlogs.Extensions
             Func<ISimpleQueryPostsFieldNames, string> orderBy = null,
             int offset = 0, int? count = null)
         {
+            var orderByString = orderBy?.Invoke(_simpleQueryPostsFieldNames);
             var stringBuilder = new StringBuilder(
 $@"SELECT P.*, 
 {_simpleQueryPostsFieldNames.LikesCount}, 
@@ -79,13 +80,12 @@ LEFT JOIN
 (SELECT LikedUserId, LikedPostId, COUNT(*) AS Count FROM Likes WHERE LikerId='{viewerId}' GROUP by LikedUserId, LikedPostId) MyLikes
 ON P.AuthorId = MyLikes.LikedUserId AND P.Id = MyLikes.LikedPostId
 {where?.Invoke(_simpleQueryPostsFieldNames)} 
+{orderByString}
 ");
             if (offset > 0 || count.HasValue)
             {
-                var orderByString = orderBy?.Invoke(_simpleQueryPostsFieldNames);
                 if (string.IsNullOrWhiteSpace(orderByString))
-                    orderByString = "ORDER BY P.AuthorId, P.Id";
-                stringBuilder.AppendLine(orderByString);
+                    stringBuilder.AppendLine("ORDER BY P.AuthorId, P.Id");
 
                 stringBuilder.AppendLine($"OFFSET {offset} ROWS");
                 if (count.HasValue)
