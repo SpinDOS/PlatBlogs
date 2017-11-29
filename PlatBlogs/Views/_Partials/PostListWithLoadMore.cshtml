@@ -1,0 +1,17 @@
+﻿@model PlatBlogs.Views._Partials.PostListWithLoadMoreModel
+@if (Model.Posts.Count > 0)
+{
+    foreach (var post in Model.Posts)
+    {
+        @await Html.PartialAsync("~/Views/_Partials/PostView.cshtml", post)
+    }
+}
+else
+{
+    @(Model.DefaultText)
+}
+
+@if (Model.MorePostsExist && Model.LoadMoreModel != null)
+{
+    @await Html.PartialAsync("~/Views/_Partials/LoadMore.cshtml", Model.LoadMoreModel)
+}

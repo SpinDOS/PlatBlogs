@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,9 +9,11 @@ using PlatBlogs.Pages._Partials;
 
 namespace PlatBlogs.Views._Partials
 {
-    public class PostCollectionWithLoadMoreModel
+    public class PostListWithLoadMoreModel
     {
         public IList<PostView> Posts { get; set; }
+        public string DefaultText { get; set; } = "No posts yet";
         public LoadMoreModel LoadMoreModel { get; set; }
+        public bool MorePostsExist { get; set; } = true;
     }
 }

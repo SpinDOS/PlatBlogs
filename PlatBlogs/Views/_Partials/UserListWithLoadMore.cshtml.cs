@@ -11,8 +11,8 @@ namespace PlatBlogs.Views._Partials
     public class UserListWithLoadMoreModel
     {
         public IList<ApplicationUser> Users { get; set; }
-        public string DefaultText { get; set; }
+        public string DefaultText { get; set; } = "No users yet";
         public LoadMoreModel LoadMoreModel { get; set; }
-        public bool MoreUsersExist { get; set; }
+        public bool MoreUsersExist { get; set; } = true;
     }
 }
