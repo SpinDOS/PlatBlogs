@@ -35,12 +35,16 @@ namespace PlatBlogs.Helpers
             var users = await dbContext.ApplicationUser.FromSql(query).ToListAsync();
 
             var moreUsersExist = users.Count == count && !overflow;
+
             var userList = new UserListWithLoadMoreModel()
             {
                 Users = users,
-                DefaultText = $"No follow{followEnding}s yet",
                 MoreUsersExist = moreUsersExist,
             };
+
+            if (!ajax)
+                userList.DefaultText = $"No follow{followEnding}s yet";
+
             if (moreUsersExist)
             {
                 userList.LoadMoreModel = new LoadMoreModel()
@@ -49,6 +53,7 @@ namespace PlatBlogs.Helpers
                     Offset = offset + count,
                 };
             }
+
             return Tuple.Create(user, userList);
         }
     }

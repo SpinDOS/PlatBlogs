@@ -12,7 +12,7 @@ namespace PlatBlogs.Views._Partials
     public class PostListWithLoadMoreModel
     {
         public IList<PostView> Posts { get; set; }
-        public string DefaultText { get; set; } = "No posts yet";
+        public string DefaultText { get; set; }
         public LoadMoreModel LoadMoreModel { get; set; }
         public bool MorePostsExist { get; set; } = true;
     }
