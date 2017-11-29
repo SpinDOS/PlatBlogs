@@ -66,7 +66,13 @@ $@"SELECT P.*,
 {_simpleQueryPostsFieldNames.MyLikeCount}, 
 U.FullName, U.UserName, U.PublicProfile
 FROM Posts P 
-LEFT JOIN AspNetUsers U ON P.AuthorId = U.Id LEFT JOIN  
+INNER JOIN 
+    (SELECT * FROM AspNetUsers WHERE PublicProfile = 'True'
+    UNION
+    SELECT AspNetUsers.* FROM Followers 
+    INNER JOIN AspNetUsers ON Followers.FollowerId = AspNetUsers.Id
+    WHERE Followers.FollowedId = '{viewerId}') U 
+ON P.AuthorId = U.Id LEFT JOIN  
 (SELECT LikedUserId, LikedPostId, COUNT(*) AS Count FROM Likes GROUP BY LikedUserId, LikedPostId) AllLikes
 ON P.AuthorId = AllLikes.LikedUserId AND P.Id = AllLikes.LikedPostId
 LEFT JOIN 
