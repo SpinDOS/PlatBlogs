@@ -1,0 +1,18 @@
+﻿@page
+@model PlatBlogs.Pages.PopularModel
+@{
+    ViewData["Title"] = "Popular";
+    ViewData["User"] = Model.CurrentUser;
+    if (Model.AjaxResult)
+    { Layout = null; }
+}
+
+@if (Model.AjaxResult)
+{
+    @await Html.PartialAsync("~/Views/_Partials/PostListWithLoadMore.cshtml", Model.PostsModel)
+    return;
+}
+
+<h2>Popular</h2>
+@await Html.PartialAsync("~/Views/_Partials/PostListWithLoadMore.cshtml", Model.PostsModel)
+
