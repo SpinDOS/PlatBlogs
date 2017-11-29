@@ -38,7 +38,7 @@ namespace PlatBlogs.Extensions
             }
         }
 
-        public static async Task<bool> IsOpenedAsync(this DbConnection conn, string viewedId, string viewerId)
+        public static async Task<bool> IsOpenedForViewerAsync(this DbConnection conn, string viewedId, string viewerId)
         {
             if (viewedId == viewerId)
                 return true;
