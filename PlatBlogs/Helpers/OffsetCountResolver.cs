@@ -13,7 +13,7 @@ namespace PlatBlogs.Helpers
 
             var overflow = offset + count + 1 < 0;
             if (overflow)
-                count = int.MaxValue - offset - 1;
+                count = int.MaxValue - offset;
 
             if (!ajax)
             {

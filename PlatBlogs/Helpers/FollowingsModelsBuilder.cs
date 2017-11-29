@@ -31,28 +31,24 @@ namespace PlatBlogs.Helpers
                     $"WHERE Followe{(followINGModel? "r" : "d")}Id='{user.Id}') " +
                     "ORDER BY UserName " +
                     $"OFFSET {offset} ROWS " +
-                    $"FETCH NEXT {count + 1} ROWS ONLY";
+                    $"FETCH NEXT {count} ROWS ONLY";
             var users = await dbContext.ApplicationUser.FromSql(query).ToListAsync();
 
-            LoadMoreModel loadMoreModel = null;
-            var moreUsersExist = users.Count > count && !overflow;
-            if (moreUsersExist)
-            {
-                loadMoreModel = new LoadMoreModel()
-                {
-                    Action = $"/Follow{followEnding}s/" + userName,
-                    Offset = offset + count,
-                };
-                users.RemoveAt(users.Count - 1);
-            }
-
+            var moreUsersExist = users.Count == count && !overflow;
             var userList = new UserListWithLoadMoreModel()
             {
                 Users = users,
                 DefaultText = $"No follow{followEnding}s yet",
-                LoadMoreModel = loadMoreModel,
                 MoreUsersExist = moreUsersExist,
             };
+            if (moreUsersExist)
+            {
+                userList.LoadMoreModel = new LoadMoreModel()
+                {
+                    Action = $"/Follow{followEnding}s/" + userName,
+                    Offset = offset + count,
+                };
+            }
             return Tuple.Create(user, userList);
         }
     }
