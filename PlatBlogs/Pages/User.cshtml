@@ -1,2 +1,24 @@
 ﻿@page "{name}"
 @model PlatBlogs.Pages.UserModel
+
+@{
+    ViewData["Title"] = $"{Model.InspectedUser.UserName}";
+    ViewData["User"] = Model.InspectedUser;
+    if (Model.AjaxResult) { Layout = null; }
+}
+
+@if (Model.ClosedProfile)
+{
+    <h2>Private profile. Content is available only if @Model.InspectedUser.FullName follows you</h2>
+    return;
+}
+
+@if (Model.AjaxResult)
+{
+    @await Html.PartialAsync("~/Views/_Partials/PostListWithLoadMore.cshtml", Model.PostsModel)
+    return;
+}
+
+<h2>@($"{Model.InspectedUser.FullName}'s posts")</h2>
+@await Html.PartialAsync("~/Views/_Partials/PostListWithLoadMore.cshtml", Model.PostsModel)
+
