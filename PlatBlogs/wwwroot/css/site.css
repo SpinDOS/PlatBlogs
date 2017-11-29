@@ -109,6 +109,10 @@ a:link, a:visited, a:hover, a:active  {
     min-height: 500px;
 }
 
+.right-menu > :first-child {
+    margin-top: 10px;
+}
+
 .lm-image-link {
     display: block;
     margin-bottom: 10px;
