@@ -20,7 +20,7 @@ namespace PlatBlogs.Pages
         public UserListWithLoadMoreModel UsersModel { get; set; }
         public bool AjaxResult { get; set; }
 
-        public async Task<IActionResult> OnGetAsync(string userName, int offset = 0, bool ajax = false)
+        public async Task<IActionResult> OnGetAsync(string userName, [FromQuery] int offset = 0, [FromQuery] bool ajax = false)
         {
             var tuple = await FollowingsModelsBuilder.BuildUsersModelAsync(DbContext, userName, offset, UsersPortion, ajax, true);
             if (tuple == null)
