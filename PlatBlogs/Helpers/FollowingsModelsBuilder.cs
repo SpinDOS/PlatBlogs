@@ -24,15 +24,7 @@ namespace PlatBlogs.Helpers
                 return null;
             }
 
-            offset = Math.Max(offset, 0);
-            if (!ajax)
-            {
-                count += offset;
-                if (count < 0)
-                    count = int.MaxValue;
-                offset = 0;
-            }
-            var overflow = count + offset + 1 < 0;
+            var overflow = OffsetCountResolver.ResolveOffsetCount(ref offset, ref count, ajax);
 
             query = "SELECT * FROM AspNetUsers WHERE Id IN " +
                     $"(SELECT Followe{(followINGModel ? "d" : "r")}Id FROM Followers " +
@@ -43,7 +35,8 @@ namespace PlatBlogs.Helpers
             var users = await dbContext.ApplicationUser.FromSql(query).ToListAsync();
 
             LoadMoreModel loadMoreModel = null;
-            if (users.Count > count && !overflow)
+            var moreUsersExist = users.Count > count && !overflow;
+            if (moreUsersExist)
             {
                 loadMoreModel = new LoadMoreModel()
                 {
@@ -56,8 +49,9 @@ namespace PlatBlogs.Helpers
             var userList = new UserListWithLoadMoreModel()
             {
                 Users = users,
-                LoadMoreModel = loadMoreModel,
                 DefaultText = $"No follow{followEnding}s yet",
+                LoadMoreModel = loadMoreModel,
+                MoreUsersExist = moreUsersExist,
             };
             return Tuple.Create(user, userList);
         }
