@@ -119,8 +119,7 @@ namespace PlatBlogs.Pages.Account
                     DateOfBirth = Input.DateOfBirth,
                     City = Input.City,
                     ShortInfo = Input.Info,
-                    AvatarPath = Input.Avatar != null? $"/avatars/{Input.Nickname}{Path.GetExtension(Input.Avatar.FileName)}":
-                        "/avatars/_no_image_.png",
+                    AvatarPath = Input.Avatar != null? $"/avatars/{Input.Nickname}{Path.GetExtension(Input.Avatar.FileName)}": null,
             };
                 var result = await _userManager.CreateAsync(user, Input.Password);
                 if (result.Succeeded)
