@@ -94,7 +94,7 @@ a:link, a:visited, a:hover, a:active  {
     color: black;
 }
 
-.left-menu {
+#left-menu {
     position: fixed;
     margin-top: 10px;
     width: 280px;
@@ -104,12 +104,12 @@ a:link, a:visited, a:hover, a:active  {
     z-index: 1;
 }
 
-.right-menu {
+#right-menu {
     margin-left: 295px;
     min-height: 500px;
 }
 
-.right-menu > :first-child {
+#right-menu > :first-child {
     margin-top: 10px;
 }
 
@@ -134,7 +134,7 @@ a:link, a:visited, a:hover, a:active  {
     vertical-align: middle;
 }
 
-.left-menu, .right-menu, .nickname {
+#left-menu, #right-menu, .nickname {
     font-size: 15px;
     color: black;
 }
@@ -178,12 +178,12 @@ a:link, a:visited, a:hover, a:active  {
 }
 
 @media (max-width: 767px) {
-    .left-menu {
+    #left-menu {
         position: relative;
         width: 100%;
     }
 
-    .right-menu {
+    #right-menu {
         margin-left: 0;
         min-height: 0;
     }
