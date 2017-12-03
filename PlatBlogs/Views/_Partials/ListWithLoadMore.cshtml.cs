@@ -7,7 +7,7 @@ namespace PlatBlogs.Views._Partials
 {
     public class ListWithLoadMoreModel
     {
-        public IList<IRenderable> Elements { get; set; }
+        public IReadOnlyCollection<IRenderable> Elements { get; set; }
         public string DefaultText { get; set; }
         public LoadMoreModel LoadMoreModel { get; set; }
     }

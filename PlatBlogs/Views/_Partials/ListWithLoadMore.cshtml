@@ -5,13 +5,12 @@
     {
         await element.RenderAsync(Html);
     }
+    if (Model.LoadMoreModel != null)
+    {
+        @await Html.PartialAsync("~/Views/_Partials/LoadMore.cshtml", Model.LoadMoreModel)
+    }
 }
 else
 {
     @Model.DefaultText
-}
-
-@if (Model.LoadMoreModel != null)
-{
-    @await Html.PartialAsync("~/Views/_Partials/LoadMore.cshtml", Model.LoadMoreModel)
 }
