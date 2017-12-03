@@ -1,6 +1,6 @@
-﻿@model PlatBlogs.Views._Partials.LoadMoreModel
+﻿@model _Partials.LoadMoreModel
 
-<form method="get" action="@Model.Action" class="load-more-form">
+<form method="@Model.Method" action="@Model.Action" class="load-more-form">
     <input type="hidden" name="offset" value="@Model.Offset"/>
     @if (Model.HasAdditionalFields)
     {
@@ -9,5 +9,5 @@
             <input type="hidden" name="@pair.Key" value="@pair.Value"/>
         }
     }
-    <input type="submit" class="platblogs-button" value="Load more"/>
+    <input type="submit" class="platblogs-button" value="@Model.Text"/>
 </form>
