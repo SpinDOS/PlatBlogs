@@ -6,6 +6,7 @@ using System.Data.Common;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using PlatBlogs.Data;
@@ -27,8 +28,10 @@ namespace PlatBlogs.Pages
         [BindProperty]
         public InputModel Input { get; set; }
 
-        private DbConnection DbConnection { get; set; }
+        public DbConnection DbConnection { get; }
 
+        [Authorize]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> OnPost()
         {
             if (ModelState.IsValid)
@@ -37,11 +40,11 @@ namespace PlatBlogs.Pages
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@text", Input.Text);
-                    cmd.Parameters.AddWithValue("@author", await DbConnection.GetUserIdByNameAsync(User.Identity.Name));
+                    cmd.Parameters.AddWithValue("@authorUserName", User.Identity.Name);
 
                     cmd.CommandText = "NewPost";
-                    if (cmd.ExecuteNonQuery() == 1)
-                        return RedirectToPage("/Home");
+                    if (await cmd.ExecuteNonQueryAsync() == 1)
+                        return RedirectToPage("/user/" + User.Identity.Name);
                     ModelState.AddModelError(string.Empty, "Error writing text to database");
                 }
             }
