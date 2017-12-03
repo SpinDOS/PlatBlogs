@@ -1,16 +1,16 @@
-﻿@model PlatBlogs.Views._Partials.PostView
+﻿@model _Partials.PostView
 @{
-    var hrefToAuthor = "/user/" + Model.AuthorUserName;
+    var href = "/user/" + Model.AuthorUserName;
 }
 
 <div class="post">
     <div class="post-date">@Model.Post.DateTime.ToString("dd.MM.yyyy HH:mm")</div>
-    <a href="@hrefToAuthor" class="name">@Model.AuthorFullName</a>
+    <a href="@href" class="name">@Model.AuthorFullName</a>
     <div class="nickname-group">
-        <a href="@hrefToAuthor" class="nickname">@@@Model.AuthorUserName</a>
+        <a href="@href" class="nickname">@@@Model.AuthorUserName</a>
         @if (!Model.AuthorPublicProfile)
         {
-            <img src="/images/lock.png" class="lock-sign"/>
+            <img src="/images/lock.png" alt="Private" class="lock-sign"/>
         }
     </div>
     <br>

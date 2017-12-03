@@ -5,12 +5,13 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using PlatBlogs.Data;
 using PlatBlogs.Extensions;
 
 namespace PlatBlogs.Views._Partials
 {
-    public class PostView
+    public class PostView : IRenderable
     {
         public Post Post { get; set; }
         public string AuthorFullName { get; set; }
@@ -26,37 +27,32 @@ namespace PlatBlogs.Views._Partials
             {
                 while (await reader.ReadAsync())
                 {
-                    var authorId = reader.GetString(0);
-                    var postId = reader.GetInt32(1);
-                    var postTime = reader.GetDateTime(2);
-                    var message = reader.GetString(3);
-                    var likesCount = reader.GetInt32(4);
-                    var liked = reader.GetInt32(5) == 1;
-                    var authorFullName = reader.GetString(6);
-                    var authorUserName = reader.GetString(7);
-                    var authorPublicProfile = reader.GetBoolean(8);
-
                     var post = new Post()
                     {
-                        AuthorId = authorId,
-                        Id = postId,
-                        DateTime = postTime,
-                        Message = message,
+                        AuthorId = reader.GetString(0),
+                        Id = reader.GetInt32(1),
+                        DateTime = reader.GetDateTime(2),
+                        Message = reader.GetString(3),
                     };
                     var postView = new PostView()
                     {
                         Post = post,
-                        LikesCount = likesCount,
-                        Liked = liked,
-                        AuthorFullName = authorFullName,
-                        AuthorUserName = authorUserName,
-                        AuthorPublicProfile = authorPublicProfile,
+                        LikesCount = reader.GetInt32(4),
+                        Liked = reader.GetInt32(5) == 1,
+                        AuthorFullName = reader.GetString(6),
+                        AuthorUserName = reader.GetString(7),
+                        AuthorPublicProfile = reader.GetBoolean(8),
                     };
                     result.Add(postView);
                 }
             }
             while (await reader.NextResultAsync());
             return result;
+        }
+
+        public async Task RenderAsync(IHtmlHelper iHtmlHelper)
+        {
+            await iHtmlHelper.PartialAsync("~/Views/_Partials/PostView.cshtml", this);
         }
     }
 }
