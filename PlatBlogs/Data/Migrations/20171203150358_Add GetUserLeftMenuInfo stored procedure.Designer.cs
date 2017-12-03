@@ -11,8 +11,8 @@ using System;
 namespace PlatBlogs.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20171129141828_Add NewPost stored procedure")]
-    partial class AddNewPoststoredprocedure
+    [Migration("20171203150358_Add GetUserLeftMenuInfo stored procedure")]
+    partial class AddGetUserLeftMenuInfostoredprocedure
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
