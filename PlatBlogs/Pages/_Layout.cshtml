@@ -1,7 +1,11 @@
 ﻿@using System.Data.Common
-@using PlatBlogs.Pages._Partials
-@inject DbConnection DbConnection
-@inject UserManager<ApplicationUser> UserManager
+@using Views._Partials
+@inject DbConnection DbConnection;
+
+@{
+    var userLeftMenuModel = ViewData["User"] as UserLeftMenuModel ??
+        await UserLeftMenuModel.FromDatabase(DbConnection, User.Identity.Name, User);
+}
 
 <!DOCTYPE html>
 <html>
@@ -31,8 +35,8 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a href="/Home" class="navbar-brand">Home</a>
-            <a href="/Popular" class="navbar-brand">Popular</a>
+            <a asp-page="Home" class="navbar-brand">Home</a>
+            <a asp-page="Popular" class="navbar-brand">Popular</a>
         </div>
         <div class="navbar-collapse collapse">
             <ul class="nav navbar-nav navbar-right">
@@ -42,19 +46,18 @@
                     </form>
                 </li>
                 <li>
-                    <a href="/Account/Manage/Index" title="Settings">Settings</a>
+                    <a asp-page="Account/Manage" title="Settings">Settings</a>
                 </li>
                 <li>
-                    <a href="/NewPost" title="New post" class="navbar-newpost">New post</a>
+                    <a asp-page="NewPost" title="New post" class="navbar-newpost">New post</a>
                 </li>
             </ul>
         </div>
     </div>
 </nav>
 <div class="container body-content">
-    @await Html.PartialAsync("_Partials/UserLeftMenu",
-        await UserLeftMenu.FromApplicationUser((ViewData["User"] as ApplicationUser)?? await UserManager.GetUserAsync(User), DbConnection, User))
-    <div class="right-menu">
+    @await Html.PartialAsync("~/Views/_Partials/UserLeftMenu.cshtml", userLeftMenuModel)
+    <div id="right-menu">
         @RenderBody()
     </div>
     <hr/>

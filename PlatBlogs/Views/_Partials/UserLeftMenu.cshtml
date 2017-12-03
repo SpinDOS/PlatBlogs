@@ -1,0 +1,59 @@
+﻿@model _Partials.UserLeftMenuModel
+
+@{
+    var hrefToUser = "/user/" + Model.UserName;
+    var hasDateOfBirth = Model.DateOfBirth.HasValue;
+    var hasCity = !string.IsNullOrWhiteSpace(Model.City);
+    var followAction = Model.FollowedByViewer.HasValue && Model.FollowedByViewer.Value? "Unfollow" : "Follow";
+}
+
+<div id="left-menu">
+    <a href="@hrefToUser" class="lm-image-link">
+        <img src="@Model.AvatarPath" alt="@@@Model.UserName" asp-append-version="true" class="lm-image">
+    </a>
+    <a href="@hrefToUser" class="name">@Model.FullName</a>
+    <br/>
+    <p>
+        <a href="@hrefToUser" class="lm-nickname nickname">@@@Model.UserName</a>
+        @if (!Model.PublicProfile)
+        {
+            <img src="/images/lock.png" alt="Private" class="lock-sign"/>
+        }
+    </p>
+        
+    @if (hasDateOfBirth || hasCity)
+    {
+        <p>
+            @if (Model.DateOfBirth.HasValue)
+            {
+                @(Model.DateOfBirth.Value.ToString("dd.MM.yyyy") + (hasCity? ", " : ""))
+            }
+            @Model.City
+        </p>
+    }
+    @if (!string.IsNullOrWhiteSpace(Model.ShortInfo))
+    {
+        <p>@Model.ShortInfo</p>
+    }
+
+    <div class="lm-statistics"> 
+        <a href="@hrefToUser" class="lm-statistics-block">Posts<br>@Model.PostCount</a>
+        <a asp-page="Followings" asp-route-userName="@Model.UserName" class="lm-statistics-block">Following<br>@Model.FollowingsCount</a>
+        <a asp-page="Followers" asp-route-userName="@Model.UserName" class="lm-statistics-block">
+            Followers
+            <br/>
+            <span id="followers-count">@Model.FollowersCount</span>
+        </a>
+    </div>
+    @if (Model.FollowedByViewer.HasValue)
+    {
+        <form method="post" asp-controller="Api" asp-action="@followAction" id="follow-form">
+            <input type="hidden" name="userName" value="@Model.UserName"/>
+            <button type="submit" class="platblogs-button">@followAction</button>
+        </form> 
+    }
+    else
+    {
+        <div class="lm-hr"></div>
+    }
+</div>

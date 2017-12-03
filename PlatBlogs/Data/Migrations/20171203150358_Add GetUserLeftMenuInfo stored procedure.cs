@@ -26,7 +26,7 @@ AS
 	DECLARE @userId nvarchar(450);
     SELECT @userId = Id FROM AspNetUsers WHERE NormalizedUserName = @normalizedUserName;
     IF @userId IS NULL
-        RETURN
+        RETURN;
 
     SELECT @postsCount = COUNT(*) FROM Posts WHERE AuthorId = @userId;
     SELECT @followingsCount = COUNT(*) FROM Followers WHERE FollowerId = @userId;
