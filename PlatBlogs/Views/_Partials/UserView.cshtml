@@ -1,24 +1,24 @@
-﻿@model PlatBlogs.Data.ApplicationUser
+﻿@model _Partials.UserViewModel
 
 @{
-    var hrefToUser = "/user/" + Model.UserName;
+    var href = "/user/" + Model.UserName;
 }
 
 <div class="user">
-    <a href="@hrefToUser">
+    <a href="@href">
         <img src="@Model.AvatarPath" alt="@@@Model.UserName" asp-append-version="true" class="user-img">
     </a>
-    <a href="@hrefToUser" class="name">@Model.FullName</a>
+    <a href="@href" class="name">@Model.FullName</a>
     <div class="nickname-group">
-        <a href="@hrefToUser" class="nickname">@@@Model.UserName</a>
+        <a href="@href" class="nickname">@@@Model.UserName</a>
         @if (!Model.PublicProfile)
         {
-            <img src="/images/lock.png" class="lock-sign" />
+            <img src="/images/lock.png" alt="Private" class="lock-sign" />
         }
     </div>
-    <br/>
     @if (!string.IsNullOrWhiteSpace(Model.ShortInfo))
     {
+        <br/>
         @Model.ShortInfo
     }
 </div>
