@@ -1,0 +1,17 @@
+﻿@model _Partials.ListWithLoadMoreModel
+@if (Model.Elements != null && Model.Elements.Count > 0)
+{
+    foreach (var element in Model.Elements)
+    {
+        await element.RenderAsync(Html);
+    }
+}
+else
+{
+    @Model.DefaultText
+}
+
+@if (Model.LoadMoreModel != null)
+{
+    @await Html.PartialAsync("~/Views/_Partials/LoadMore.cshtml", Model.LoadMoreModel)
+}
