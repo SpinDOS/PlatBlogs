@@ -1,0 +1,7 @@
+﻿@model _Partials.ListWithLoadMoreModel
+@{
+    Layout = "~/Pages/_Layout.cshtml";
+}
+<h2>@(ViewData["Main"]?? ViewData["Title"])</h2>
+@await Html.PartialAsync("~/Views/_Partials/ListWithLoadMore.cshtml", Model)
+
