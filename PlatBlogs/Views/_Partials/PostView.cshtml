@@ -1,14 +1,14 @@
 ﻿@model _Partials.PostView
 @{
-    var href = "/user/" + Model.AuthorUserName;
+    var href = "/user/" + Model.Author.UserName;
 }
 
 <div class="post">
     <div class="post-date">@Model.Post.DateTime.ToString("dd.MM.yyyy HH:mm")</div>
-    <a href="@href" class="name">@Model.AuthorFullName</a>
+    <a href="@href" class="name">@Model.Author.FullName</a>
     <div class="nickname-group">
-        <a href="@href" class="nickname">@@@Model.AuthorUserName</a>
-        @if (!Model.AuthorPublicProfile)
+        <a href="@href" class="nickname">@@@Model.Author.UserName</a>
+        @if (!Model.Author.PublicProfile)
         {
             <img src="/images/lock.png" alt="Private" class="lock-sign"/>
         }
@@ -16,7 +16,7 @@
     <br>
     @Model.Post.Message
     <form method="post" asp-controller="Api" asp-action="@(Model.Liked? "Unlike" : "Like")" class="post-like-form">
-        <input type="hidden" name="author" value="@Model.AuthorUserName"/>
+        <input type="hidden" name="author" value="@Model.Author.UserName"/>
         <input type="hidden" name="postId" value="@Model.Post.Id"/>
         <button type="submit" class="post-like-button @(Model.Liked? "liked-img" : "not-liked-img")">@Model.LikesCount</button>
     </form>
