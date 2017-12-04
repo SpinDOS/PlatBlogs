@@ -102,14 +102,14 @@ function handleLoadMore() {
         $('<input type="hidden" name="ajax" value="true">').appendTo(form);
 
         $.ajax({
-            type: form.attr("method"),
+            type: "POST",
             url: url,
             data: form.serialize(),
             success: function (data) {
                 var tempBlock = $("<div>" + data + "</div>");
                 tempBlock.find(".load-more-form").each(handleLoadMore);
                 tempBlock.find(".post-like-form").each(handleLike);
-                form.replaceWith(tempBlock.children());
+                form.replaceWith(tempBlock.contents());
             },
             error: function () {
                 alert("Cannot load more data");
