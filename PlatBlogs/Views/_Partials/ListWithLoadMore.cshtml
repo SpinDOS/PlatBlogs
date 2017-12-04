@@ -3,7 +3,7 @@
 {
     foreach (var element in Model.Elements)
     {
-        await element.RenderAsync(Html);
+        @await element.RenderAsync(Html)
     }
     if (Model.LoadMoreModel != null)
     {
