@@ -12,16 +12,16 @@ using PlatBlogs.Extensions;
 
 namespace PlatBlogs.Views._Partials
 {
-    public class PostView : IRenderable
+    public class PostViewModel : IRenderable
     {
         public Post Post { get; set; }
         public IUserBasicInfo Author { get; set; }
         public bool Liked { get; set; }
         public int LikesCount { get; set; }
         
-        public static async Task<List<PostView>> FromSqlReaderAsync(DbDataReader reader)
+        public static async Task<List<PostViewModel>> FromSqlReaderAsync(DbDataReader reader)
         {
-            var result = new List<PostView>();
+            var result = new List<PostViewModel>();
             do
             {
                 while (await reader.ReadAsync())
@@ -33,7 +33,7 @@ namespace PlatBlogs.Views._Partials
                         DateTime = reader.GetDateTime(2),
                         Message = reader.GetString(3),
                     };
-                    var postView = new PostView()
+                    var postView = new PostViewModel()
                     {
                         Post = post,
                         LikesCount = reader.GetInt32(4),

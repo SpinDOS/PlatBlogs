@@ -90,7 +90,7 @@ FETCH NEXT {count} ROWS ONLY";
                 {
                     if (!reader.HasRows)
                         return result;
-                    result.Elements = await PostView.FromSqlReaderAsync(reader);
+                    result.Elements = await PostViewModel.FromSqlReaderAsync(reader);
                     if (result.Elements.Count == count)
                     {
                         result.LoadMoreModel = new LoadMoreModel("/user/" + name)
