@@ -22,22 +22,8 @@ namespace PlatBlogs.Controllers
     [Authorize]
     public class ApiController : Controller
     {
+        public ApiController(DbConnection dbConnection) { DbConnection = dbConnection; }
         private DbConnection DbConnection { get; }
-        private ApplicationDbContext DbContext { get; }
-
-        public ApiController(ApplicationDbContext dbContext)
-        {
-            DbContext = dbContext;
-            DbConnection = DbContext.Database.GetDbConnection();
-            DbConnection.Open();
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-            DbConnection.Dispose();
-        }
-
 
         [HttpPost]
         [ValidateAntiForgeryToken]
