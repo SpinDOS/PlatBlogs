@@ -42,7 +42,6 @@ namespace PlatBlogs.Controllers
 
 
         [HttpPost("/user/{name}")]
-        [ActionName("Index")]
         public async Task<IActionResult> IndexPost(string name, [FromForm] int offset)
         {
             int count = PostsPortion;
@@ -54,8 +53,7 @@ namespace PlatBlogs.Controllers
             return PartialView("~/Views/_Partials/ListWithLoadMore.cshtml", posts);
         }
 
-        private async Task<ListWithLoadMoreModel> GetPostsAsync(string name, int offset, int count, 
-            IUserBasicInfo userBasicInfo = null)
+        private async Task<ListWithLoadMoreModel> GetPostsAsync(string name, int offset, int count)
         {
             var myId = await DbConnection.GetUserIdByNameAsync(User.Identity.Name);
 
