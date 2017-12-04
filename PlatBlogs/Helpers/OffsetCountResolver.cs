@@ -2,25 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using PlatBlogs.Exceptions;
 
 namespace PlatBlogs.Helpers
 {
     public static class OffsetCountResolver
     {
-        public static bool ResolveOffsetCount(ref int offset, ref int count, bool ajax)
+        public static int ResolveOffsetCount(int offset, ref int count)
         {
-            offset = Math.Max(offset, 0);
-
-            var overflow = offset + count + 1 < 0;
-            if (overflow)
-                count = int.MaxValue - offset;
-
-            if (!ajax)
-            {
-                count += offset;
-                offset = 0;
-            }
-            return overflow;
+            if (offset < 0 || offset == int.MaxValue)
+                throw new OffsetException(offset);
+            count = Math.Min(count, int.MaxValue - offset);
+            return offset + count;
         }
     }
 }
