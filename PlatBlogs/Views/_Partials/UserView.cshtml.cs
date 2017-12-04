@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using PlatBlogs.Data;
 
 namespace PlatBlogs.Views._Partials
 {
-    public class UserViewModel : IRenderable
+    public class UserViewModel : IRenderable, IUserBasicInfo
     {
         public UserViewModel() { }
 
@@ -30,11 +31,9 @@ namespace PlatBlogs.Views._Partials
         public bool PublicProfile { get; set; }
         public string ShortInfo { get; set; }
 
-        public async Task RenderAsync(IHtmlHelper iHtmlHelper)
-        {
-            await iHtmlHelper.PartialAsync("~/Views/_Partials/UserView.cshtml", this);
-        }
-
+        public async Task<object> RenderAsync(IHtmlHelper iHtmlHelper) 
+            => await iHtmlHelper.PartialAsync("~/Views/_Partials/UserView.cshtml", this);
+        
         public static implicit operator UserViewModel(ApplicationUser user) => new UserViewModel(user);
     }
 }

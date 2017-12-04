@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using PlatBlogs.Data;
 using PlatBlogs.Extensions;
@@ -14,9 +15,7 @@ namespace PlatBlogs.Views._Partials
     public class PostView : IRenderable
     {
         public Post Post { get; set; }
-        public string AuthorFullName { get; set; }
-        public string AuthorUserName { get; set; }
-        public bool AuthorPublicProfile { get; set; }
+        public IUserBasicInfo Author { get; set; }
         public bool Liked { get; set; }
         public int LikesCount { get; set; }
         
@@ -39,10 +38,16 @@ namespace PlatBlogs.Views._Partials
                         Post = post,
                         LikesCount = reader.GetInt32(4),
                         Liked = reader.GetInt32(5) == 1,
-                        AuthorFullName = reader.GetString(6),
-                        AuthorUserName = reader.GetString(7),
-                        AuthorPublicProfile = reader.GetBoolean(8),
                     };
+                    if (reader.FieldCount > 8)
+                    {
+                        postView.Author = new SimpleUserBasicInfo
+                        { 
+                            FullName = reader.GetString(6),
+                            UserName = reader.GetString(7),
+                            PublicProfile = reader.GetBoolean(8),
+                        };
+                    }
                     result.Add(postView);
                 }
             }
@@ -50,9 +55,7 @@ namespace PlatBlogs.Views._Partials
             return result;
         }
 
-        public async Task RenderAsync(IHtmlHelper iHtmlHelper)
-        {
-            await iHtmlHelper.PartialAsync("~/Views/_Partials/PostView.cshtml", this);
-        }
+        public async Task<object> RenderAsync(IHtmlHelper iHtmlHelper) 
+            => await iHtmlHelper.PartialAsync("~/Views/_Partials/PostView.cshtml", this);
     }
 }
