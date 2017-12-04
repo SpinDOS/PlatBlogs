@@ -38,8 +38,12 @@
 
     <div class="lm-statistics"> 
         <a href="@hrefToUser" class="lm-statistics-block">Posts<br>@Model.PostCount</a>
-        <a asp-page="/Followings" asp-route-userName="@Model.UserName" class="lm-statistics-block">Following<br>@Model.FollowingsCount</a>
-        <a asp-page="/Followers" asp-route-userName="@Model.UserName" class="lm-statistics-block">
+        <a asp-controller="Followings" asp-action="Followings" asp-route-name="@Model.UserName" class="lm-statistics-block">
+            Following
+            <br/>
+            @Model.FollowingsCount
+        </a>
+        <a asp-controller="Followings" asp-action="Followers" asp-route-name="@Model.UserName" class="lm-statistics-block">
             Followers
             <br/>
             <span id="followers-count">@Model.FollowersCount</span>
