@@ -25,8 +25,8 @@ namespace PlatBlogs.Extensions
             using (var cmd = conn.CreateCommand())
             {
                 cmd.Parameters.AddWithValue("normalizedUserName", userName.ToUpper());
-                cmd.CommandText = "SELECT Id FROM AspNetUsers " +
-                                  "WHERE NormalizedUserName=@normalizedUserName";
+                cmd.CommandText = 
+                    "SELECT Id FROM AspNetUsers WHERE NormalizedUserName = @normalizedUserName; ";
                 return await cmd.ExecuteScalarAsync() as string;
             }
         }
@@ -35,8 +35,8 @@ namespace PlatBlogs.Extensions
         {
             using (var cmd = conn.CreateCommand())
             {
-                cmd.CommandText = "SELECT 'NOTUSED' FROM Followers " +
-                                  $"WHERE followedId='{followedId}' AND followerId='{followerId}'";
+                cmd.CommandText = 
+                    $"SELECT 1 FROM Followers WHERE followedId='{followedId}' AND followerId='{followerId}'";
                 return await cmd.ExecuteScalarAsync() != null;
             }
         }
@@ -53,77 +53,5 @@ namespace PlatBlogs.Extensions
             }
             return await CheckFollowingAsync(conn, viewerId, viewedId);
         }
-
-        public static async Task<List<PostView>> SimpleQueryPosts(
-            this DbConnection conn, string viewerId,
-            Func<ISimpleQueryPostsFieldNames, string> where = null,
-            Func<ISimpleQueryPostsFieldNames, string> orderBy = null,
-            int offset = 0, int? count = null)
-        {
-            var orderByString = orderBy?.Invoke(_simpleQueryPostsFieldNames);
-            var stringBuilder = new StringBuilder(
-$@"SELECT P.*, 
-{_simpleQueryPostsFieldNames.LikesCount}, 
-{_simpleQueryPostsFieldNames.MyLikeCount}, 
-U.FullName, U.UserName, U.PublicProfile
-FROM Posts P 
-INNER JOIN 
-    (SELECT * FROM AspNetUsers WHERE PublicProfile = 'True'
-    UNION
-    SELECT AspNetUsers.* FROM Followers 
-    INNER JOIN AspNetUsers ON Followers.FollowerId = AspNetUsers.Id
-    WHERE Followers.FollowedId = '{viewerId}') U 
-ON P.AuthorId = U.Id LEFT JOIN  
-(SELECT LikedUserId, LikedPostId, COUNT(*) AS Count FROM Likes GROUP BY LikedUserId, LikedPostId) AllLikes
-ON P.AuthorId = AllLikes.LikedUserId AND P.Id = AllLikes.LikedPostId
-LEFT JOIN 
-(SELECT LikedUserId, LikedPostId, COUNT(*) AS Count FROM Likes WHERE LikerId='{viewerId}' GROUP by LikedUserId, LikedPostId) MyLikes
-ON P.AuthorId = MyLikes.LikedUserId AND P.Id = MyLikes.LikedPostId
-{where?.Invoke(_simpleQueryPostsFieldNames)} 
-{orderByString}
-");
-            if (offset > 0 || count.HasValue)
-            {
-                if (string.IsNullOrWhiteSpace(orderByString))
-                    stringBuilder.AppendLine("ORDER BY P.AuthorId, P.Id");
-
-                stringBuilder.AppendLine($"OFFSET {offset} ROWS");
-                if (count.HasValue)
-                    stringBuilder.AppendLine($"FETCH NEXT {count.Value} ROWS ONLY");
-            }
-
-            using (var cmd = conn.CreateCommand())
-            {
-                cmd.CommandText = stringBuilder.ToString();
-                return await PostView.FromSqlReaderAsync(await cmd.ExecuteReaderAsync());
-            }
-        }
-
-        public interface ISimpleQueryPostsFieldNames
-        {
-            string AuthorId { get; }
-            string PostId { get; }
-            string PostTime { get; }
-            string Message { get; }
-            string AuthorFullName { get; }
-            string AuthorUserName { get; }
-            string AuthorPublicProfile { get; }
-            string LikesCount { get; }
-            string MyLikeCount { get; }
-        }
-
-        private class SimpleQueryPostsFieldNames : ISimpleQueryPostsFieldNames
-        {
-            public string AuthorId => "P." + nameof(Data.Post.AuthorId);
-            public string PostId => "P." + nameof(Data.Post.Id);
-            public string PostTime => "P." + nameof(Data.Post.DateTime);
-            public string Message => "P." + nameof(Data.Post.Message);
-            public string AuthorFullName => "U." + nameof(ApplicationUser.FullName);
-            public string AuthorUserName => "U." + nameof(ApplicationUser.UserName);
-            public string AuthorPublicProfile => "U." + nameof(ApplicationUser.PublicProfile);
-            public string LikesCount => "ISNULL(AllLikes.Count, 0)";
-            public string MyLikeCount => "ISNULL(MyLikes.Count, 0)";
-        }
-        private static readonly ISimpleQueryPostsFieldNames _simpleQueryPostsFieldNames = new SimpleQueryPostsFieldNames();
     }
 }
