@@ -23,7 +23,7 @@ namespace PlatBlogs.Controllers
         public async Task<IActionResult> Followings(string name, int offset = 0)
         {
             int count = PostsPortion;
-            int sum = OffsetCountResolver.ResolveOffsetCount(offset, ref count);
+            int sum = OffsetCountResolver.ResolveOffsetCountWithReserve(offset, ref count);
 
             var userLeftMenuModel = await UserLeftMenuModel.FromDatabase(DbConnection, name, User);
             if (userLeftMenuModel == null)
@@ -45,7 +45,7 @@ namespace PlatBlogs.Controllers
         public async Task<IActionResult> FollowingsPost(string name, [FromForm] int offset)
         {
             int count = PostsPortion;
-            OffsetCountResolver.ResolveOffsetCount(offset, ref count);
+            OffsetCountResolver.ResolveOffsetCountWithReserve(offset, ref count);
 
             var followings = await GetUsersAsync(name, offset, count, true);
             if (followings == null)
@@ -58,7 +58,7 @@ namespace PlatBlogs.Controllers
         public async Task<IActionResult> Followers(string name, int offset = 0)
         {
             int count = PostsPortion;
-            int sum = OffsetCountResolver.ResolveOffsetCount(offset, ref count);
+            int sum = OffsetCountResolver.ResolveOffsetCountWithReserve(offset, ref count);
 
             var userLeftMenuModel = await UserLeftMenuModel.FromDatabase(DbConnection, name, User);
             if (userLeftMenuModel == null)
@@ -80,7 +80,7 @@ namespace PlatBlogs.Controllers
         public async Task<IActionResult> FollowersPost(string name, [FromForm] int offset)
         {
             int count = PostsPortion;
-            OffsetCountResolver.ResolveOffsetCount(offset, ref count);
+            OffsetCountResolver.ResolveOffsetCountWithReserve(offset, ref count);
 
             var followers = await GetUsersAsync(name, offset, count, false);
             if (followers == null)
@@ -106,20 +106,22 @@ FROM AspNetUsers WHERE Id IN
   WHERE Followe{(followings ? "r" : "d")}Id = '{userId}') 
 ORDER BY Id 
 OFFSET {offset} ROWS 
-FETCH NEXT {count} ROWS ONLY
+FETCH NEXT {count + 1} ROWS ONLY
 ";
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     if (!reader.HasRows)
                         return result;
-                    result.Elements = await UserViewModel.FromSqlReaderAsync(reader);
-                    if (result.Elements.Count == count)
+                    var users = await UserViewModel.FromSqlReaderAsync(reader);
+                    if (users.Count == count + 1)
                     {
+                        users.RemoveAt(users.Count - 1);
                         result.LoadMoreModel = new LoadMoreModel($"/Follow{(followings? "ing": "er")}s/{name}")
                         {
                             Offset = offset + count,
                         };
                     }
+                    result.Elements = users;
                 }
             }
             return result;

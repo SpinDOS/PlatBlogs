@@ -23,7 +23,7 @@ namespace PlatBlogs.Controllers
         public async Task<IActionResult> Index(string name, [FromQuery] int offset = 0)
         {
             int count = PostsPortion;
-            int sum = OffsetCountResolver.ResolveOffsetCount(offset, ref count);
+            int sum = OffsetCountResolver.ResolveOffsetCountWithReserve(offset, ref count);
 
             var userLeftMenuModel = await UserLeftMenuModel.FromDatabase(DbConnection, name, User);
             if (userLeftMenuModel == null)
@@ -45,7 +45,7 @@ namespace PlatBlogs.Controllers
         public async Task<IActionResult> IndexPost(string name, [FromForm] int offset)
         {
             int count = PostsPortion;
-            OffsetCountResolver.ResolveOffsetCount(offset, ref count);
+            OffsetCountResolver.ResolveOffsetCountWithReserve(offset, ref count);
 
             var posts = await GetPostsAsync(name, offset, count);
             if (posts == null)
@@ -85,19 +85,21 @@ FROM Posts P
 WHERE P.AuthorId = '{authorInfo.Id}' 
 ORDER BY P.DateTime DESC 
 OFFSET {offset} ROWS 
-FETCH NEXT {count} ROWS ONLY";
+FETCH NEXT {count + 1} ROWS ONLY";
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     if (!reader.HasRows)
                         return result;
-                    result.Elements = await PostViewModel.FromSqlReaderAsync(reader);
-                    if (result.Elements.Count == count)
+                    var posts = await PostViewModel.FromSqlReaderAsync(reader);
+                    if (posts.Count == count + 1)
                     {
+                        posts.RemoveAt(posts.Count - 1);
                         result.LoadMoreModel = new LoadMoreModel("/user/" + name)
                         {
                             Offset = offset + count,
                         };
                     }
+                    result.Elements = posts;
                 }
             }
             return result;
