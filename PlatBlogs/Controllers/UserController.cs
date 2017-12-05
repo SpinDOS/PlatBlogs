@@ -127,7 +127,7 @@ FROM AspNetUsers WHERE NormalizedUserName = @normalizedUserName;";
                     };
                 }
             }
-            result.OpenedToRead = result.PublicProfile || 
+            result.OpenedToRead = result.PublicProfile || result.Id == viewerId || 
                 await DbConnection.CheckFollowingAsync(viewerId, result.Id);
             
             return result;
