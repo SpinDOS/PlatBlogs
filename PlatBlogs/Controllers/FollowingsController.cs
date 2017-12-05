@@ -105,9 +105,7 @@ FROM AspNetUsers WHERE Id IN
 (SELECT Followe{(followings ? "d" : "r")}Id FROM Followers 
   WHERE Followe{(followings ? "r" : "d")}Id = '{userId}') 
 ORDER BY Id 
-OFFSET {offset} ROWS 
-FETCH NEXT {count + 1} ROWS ONLY
-";
+{QueryBuildHelpers.OffsetCount.FetchWithOffsetWithReserveBlock(offset, count)} ";
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     if (!reader.HasRows)

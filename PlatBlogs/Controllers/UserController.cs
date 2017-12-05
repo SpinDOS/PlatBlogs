@@ -84,8 +84,7 @@ SELECT P.AuthorId, P.Id, P.DateTime, P.Message,
 FROM Posts P
 WHERE P.AuthorId = '{authorInfo.Id}' 
 ORDER BY P.DateTime DESC 
-OFFSET {offset} ROWS 
-FETCH NEXT {count + 1} ROWS ONLY";
+{QueryBuildHelpers.OffsetCount.FetchWithOffsetWithReserveBlock(offset, count)} ";
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     if (!reader.HasRows)
