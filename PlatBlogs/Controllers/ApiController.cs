@@ -20,13 +20,13 @@ using PlatBlogs.Views._Partials;
 namespace PlatBlogs.Controllers
 {
     [Authorize]
+    [ValidateAntiForgeryToken]
     public class ApiController : Controller
     {
         public ApiController(DbConnection dbConnection) { DbConnection = dbConnection; }
         private DbConnection DbConnection { get; }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<JsonResult> Like([FromForm] string author, [FromForm] int postId)
         {
             (string authorId, bool authorPublicProfile) = await GetIdAndPublicProfile(author);
@@ -50,7 +50,6 @@ namespace PlatBlogs.Controllers
 
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<JsonResult> Unlike([FromForm] string author, [FromForm] int postId)
         {
             var authorId = await DbConnection.GetUserIdByNameAsync(author);
@@ -67,9 +66,7 @@ namespace PlatBlogs.Controllers
                 new JsonResult(new { liked = false, warning = $"{author}'s post {postId} was not liked" });
         }
 
-
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<JsonResult> Follow([FromForm] string userName)
         {
             if (userName.ToUpper() == User.Identity.Name.ToUpper())
@@ -87,7 +84,6 @@ namespace PlatBlogs.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<JsonResult> Unfollow([FromForm] string userName)
         {
             var userId = await DbConnection.GetUserIdByNameAsync(userName);
