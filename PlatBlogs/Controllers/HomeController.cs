@@ -9,6 +9,7 @@ using PlatBlogs.Attributes;
 using PlatBlogs.Extensions;
 using PlatBlogs.Helpers;
 using PlatBlogs.Views._Partials;
+using static PlatBlogs.Helpers.QueryBuildHelpers.PostView;
 
 namespace PlatBlogs.Controllers
 {
@@ -58,9 +59,11 @@ namespace PlatBlogs.Controllers
             var whereClause = QueryBuildHelpers.WhereClause.FollowedUsersFilterWhereClause(myId);
             var authorsBasicInfoQuery = QueryBuildHelpers.UserBasicInfo.UsersBasicInfoQuery(whereClause);
             var query = 
+
 $@"{QueryBuildHelpers.PostView.AvailablePostViewInfosQuery(myId, authorsBasicInfoQuery)} 
-ORDER BY PostDateTime DESC
+ORDER BY {nameof(FieldNames.PostDateTime)} DESC
 {QueryBuildHelpers.OffsetCount.FetchWithOffsetWithReserveBlock(offset, count)} ";
+
             using (var cmd = DbConnection.CreateCommand())
             {
                 cmd.CommandText = query;

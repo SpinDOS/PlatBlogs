@@ -72,15 +72,17 @@ namespace PlatBlogs.Controllers
             using (var cmd = DbConnection.CreateCommand())
             {
                 var authorsBasicInfoQuery =
-$@" SELECT '{authorInfo.Id}' AS Id, '{authorInfo.FullName}' AS FullName, 
-    '{authorInfo.UserName}' AS UserName, @publicProfile AS PublicProfile ";
+$@" SELECT '{authorInfo.Id}'       AS Id, 
+           '{authorInfo.FullName}' AS FullName, 
+           '{authorInfo.UserName}' AS UserName, 
+            @publicProfile         AS PublicProfile ";
 
                 cmd.CommandText = 
 $@"DECLARE @publicProfile BIT;
-SET @publicProfile = CAST({Convert.ToInt32(authorInfo.PublicProfile)} AS BIT);
+   SET     @publicProfile = CAST({Convert.ToInt32(authorInfo.PublicProfile)} AS BIT);
 
 {QueryBuildHelpers.PostView.AvailablePostViewInfosQuery(myId, authorsBasicInfoQuery)} 
-ORDER BY PostDateTime DESC 
+ORDER BY {nameof(QueryBuildHelpers.PostView.FieldNames.PostDateTime)} DESC 
 {QueryBuildHelpers.OffsetCount.FetchWithOffsetWithReserveBlock(offset, count)} ";
 
                 using (var reader = await cmd.ExecuteReaderAsync())
