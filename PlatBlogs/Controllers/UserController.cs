@@ -29,7 +29,7 @@ namespace PlatBlogs.Controllers
             if (userLeftMenuModel == null)
                 return NotFound();
 
-            var posts = await GetPostsAsync(name, 0, sum);
+            var posts = await GetUserPostsAsync(name, 0, sum);
             if (posts.DefaultText == null)
                 posts.DefaultText = "No posts yet";
 
@@ -47,13 +47,13 @@ namespace PlatBlogs.Controllers
             int count = PostsPortion;
             OffsetCountResolver.ResolveOffsetCountWithReserve(offset, ref count);
 
-            var posts = await GetPostsAsync(name, offset, count);
+            var posts = await GetUserPostsAsync(name, offset, count);
             if (posts == null)
                 return NotFound();
             return PartialView("~/Views/_Partials/ListWithLoadMore.cshtml", posts);
         }
 
-        private async Task<ListWithLoadMoreModel> GetPostsAsync(string name, int offset, int count)
+        private async Task<ListWithLoadMoreModel> GetUserPostsAsync(string name, int offset, int count)
         {
             var myId = await DbConnection.GetUserIdByNameAsync(User.Identity.Name);
 
@@ -71,20 +71,18 @@ namespace PlatBlogs.Controllers
 
             using (var cmd = DbConnection.CreateCommand())
             {
+                var authorsBasicInfoQuery =
+$@" SELECT '{authorInfo.Id}' AS Id, '{authorInfo.FullName}' AS FullName, 
+    '{authorInfo.UserName}' AS UserName, @publicProfile AS PublicProfile ";
+
                 cmd.CommandText = 
 $@"DECLARE @publicProfile BIT;
 SET @publicProfile = CAST({Convert.ToInt32(authorInfo.PublicProfile)} AS BIT);
 
-SELECT P.AuthorId, P.Id, P.DateTime, P.Message, 
-(SELECT COUNT(*) FROM Likes AllLikes 
-    WHERE AllLikes.LikedUserId = '{authorInfo.Id}' AND P.Id = AllLikes.LikedPostId), 
-(SELECT COUNT(*) FROM Likes MyLikes 
-    WHERE MyLikes.LikedUserId = '{authorInfo.Id}' AND P.Id = MyLikes.LikedPostId AND LikerId = '{myId}'), 
-'{authorInfo.FullName}', '{authorInfo.UserName}', @publicProfile 
-FROM Posts P
-WHERE P.AuthorId = '{authorInfo.Id}' 
-ORDER BY P.DateTime DESC 
+{QueryBuildHelpers.PostView.AvailablePostViewInfosQuery(myId, authorsBasicInfoQuery)} 
+ORDER BY PostDateTime DESC 
 {QueryBuildHelpers.OffsetCount.FetchWithOffsetWithReserveBlock(offset, count)} ";
+
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     if (!reader.HasRows)
@@ -110,9 +108,8 @@ ORDER BY P.DateTime DESC
             using (var cmd = DbConnection.CreateCommand())
             {
                 cmd.Parameters.AddWithValue("@normalizedUserName", name.ToUpper());
-                cmd.CommandText =
-@"SELECT Id, FullName, UserName, PublicProfile 
-FROM AspNetUsers WHERE NormalizedUserName = @normalizedUserName;";
+                var userFilterWhereClause = "NormalizedUserName = @normalizedUserName";
+                cmd.CommandText = QueryBuildHelpers.UserBasicInfo.UsersBasicInfoQuery(userFilterWhereClause);
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     if (!await reader.ReadAsync())
