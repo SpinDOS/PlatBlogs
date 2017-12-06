@@ -27,7 +27,7 @@ namespace PlatBlogs.Controllers
 
             var userLeftMenuModel = await UserLeftMenuModel.FromDatabase(DbConnection, User.Identity.Name, User);
 
-            var posts = await GetPostsAsync(userLeftMenuModel.Id, 0, sum);
+            var posts = await GetHomePostsAsync(userLeftMenuModel.Id, 0, sum);
             posts.DefaultText = "No news yet";
 
             ViewData["User"] = userLeftMenuModel;
@@ -47,11 +47,11 @@ namespace PlatBlogs.Controllers
 
             var myId = await DbConnection.GetUserIdByNameAsync(User.Identity.Name);
 
-            var posts = await GetPostsAsync(myId, offset, count);
+            var posts = await GetHomePostsAsync(myId, offset, count);
             return PartialView("~/Views/_Partials/ListWithLoadMore.cshtml", posts);
         }
 
-        private async Task<ListWithLoadMoreModel> GetPostsAsync(string myId, int offset, int count)
+        private async Task<ListWithLoadMoreModel> GetHomePostsAsync(string myId, int offset, int count)
         {
             ListWithLoadMoreModel result = new ListWithLoadMoreModel();
 
