@@ -31,12 +31,12 @@ FETCH NEXT {count + 1} ROWS ONLY ";
         public static class WhereClause
         {
 
-            public static string OpenedUsersFilterWhereClause(string userId) =>
-                $" PublicProfile = 1 OR Id IN ({Followers.UserFollowersIdsQuery(userId)}) ";
+            public static string OpenedUsersFilterWhereClause(string viewerId) =>
+                $" PublicProfile = 1 OR Id = '{viewerId}' OR Id IN ({Followers.UserFollowersIdsQuery(viewerId)}) ";
 
-            public static string FollowedUsersFilterWhereClause(string userId) =>
-$@" Id IN (SELECT FollowedId FROM Followers WHERE FollowerId = '{userId}') AND 
-    (PublicProfile = 1 OR Id IN ({Followers.UserFollowersIdsQuery(userId)})) ";
+            public static string FollowedUsersFilterWhereClause(string viewerId) =>
+$@" Id IN (SELECT FollowedId FROM Followers WHERE FollowerId = '{viewerId}') AND 
+    (PublicProfile = 1 OR Id IN ({Followers.UserFollowersIdsQuery(viewerId)})) ";
 
         }
 
@@ -62,12 +62,12 @@ FROM Posts P
 JOIN ({authorsBasicInfoQuery}) A
 ON P.AuthorId = A.Id ";
 
-            public static string AvailablePostViewInfosQuery(string userId, string authorsBasicInfoQuery) =>
+            public static string AvailablePostViewInfosQuery(string viewerId, string authorsBasicInfoQuery) =>
 $@" SELECT AuthorId, PostId, PostDateTime, PostMessage, 
     (SELECT COUNT(*) FROM Likes 
         WHERE LikedUserId = AuthorId AND LikedPostId = PostId) AS AllLikesCount, 
     (SELECT COUNT(*) FROM Likes 
-        WHERE LikedUserId = AuthorId AND LikedPostId = PostId AND LikerId = '{userId}') AS MyLikesCount, 
+        WHERE LikedUserId = AuthorId AND LikedPostId = PostId AND LikerId = '{viewerId}') AS MyLikesCount, 
     AuthorFullName, AuthorUserName, AuthorPublicProfile
 FROM ({AvailablePostsWithAuthorInfoQuery(authorsBasicInfoQuery)}) PostsWithAuthorInfo";
 
