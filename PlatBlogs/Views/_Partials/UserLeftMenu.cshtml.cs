@@ -11,7 +11,7 @@ using PlatBlogs.Extensions;
 
 namespace PlatBlogs.Views._Partials
 {
-    public class UserLeftMenuModel: IUserBasicInfo
+    public class UserLeftMenuModel: IAuthor
     {
         public string Id { get; set; }
         public string FullName { get; set; }

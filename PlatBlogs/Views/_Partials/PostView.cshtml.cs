@@ -15,7 +15,7 @@ namespace PlatBlogs.Views._Partials
     public class PostViewModel : IRenderable
     {
         public Post Post { get; set; }
-        public IUserBasicInfo Author { get; set; }
+        public IAuthor Author { get; set; }
         public bool Liked { get; set; }
         public int LikesCount { get; set; }
         
@@ -41,7 +41,7 @@ namespace PlatBlogs.Views._Partials
                     };
                     if (reader.FieldCount > 8)
                     {
-                        postView.Author = new SimpleUserBasicInfo
+                        postView.Author = new SimpleAuthor
                         { 
                             FullName = reader.GetString(6),
                             UserName = reader.GetString(7),

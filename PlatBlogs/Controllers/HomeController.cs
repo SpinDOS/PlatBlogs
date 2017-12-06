@@ -9,7 +9,7 @@ using PlatBlogs.Attributes;
 using PlatBlogs.Extensions;
 using PlatBlogs.Helpers;
 using PlatBlogs.Views._Partials;
-using static PlatBlogs.Helpers.QueryBuildHelpers.PostView;
+using static PlatBlogs.Helpers.QueryBuildHelpers.Posts;
 
 namespace PlatBlogs.Controllers
 {
@@ -56,11 +56,12 @@ namespace PlatBlogs.Controllers
         {
             ListWithLoadMoreModel result = new ListWithLoadMoreModel();
 
-            var whereClause = QueryBuildHelpers.WhereClause.FollowedUsersFilterWhereClause(myId);
-            var authorsBasicInfoQuery = QueryBuildHelpers.UserBasicInfo.UsersBasicInfoQuery(whereClause);
+            var whereClause = QueryBuildHelpers.WhereClause.FollowedUsersWhereClause(myId);
+            var authorsQuery = QueryBuildHelpers.Users.AuthorsQuery(whereClause);
+            var postsWithAuthorsQuery = QueryBuildHelpers.Posts.PostsWithAuthorsQuery(authorsQuery);
             var query = 
 
-$@"{QueryBuildHelpers.PostView.AvailablePostViewInfosQuery(myId, authorsBasicInfoQuery)} 
+$@"{QueryBuildHelpers.Posts.PostViewsQuery(myId, postsWithAuthorsQuery)} 
 ORDER BY {nameof(FieldNames.PostDateTime)} DESC
 {QueryBuildHelpers.OffsetCount.FetchWithOffsetWithReserveBlock(offset, count)} ";
 

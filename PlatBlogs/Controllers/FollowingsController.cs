@@ -97,15 +97,19 @@ namespace PlatBlogs.Controllers
                 return null;
 
             ListWithLoadMoreModel result = new ListWithLoadMoreModel();
-            using (var cmd = DbConnection.CreateCommand())
-            {
-                cmd.CommandText =
-$@"SELECT Id, FullName, UserName, AvatarPath, PublicProfile, ShortInfo 
-FROM AspNetUsers WHERE Id IN 
-(SELECT Followe{(followings ? "d" : "r")}Id FROM Followers 
-  WHERE Followe{(followings ? "r" : "d")}Id = '{userId}') 
+
+            var whereClause = 
+$@"WHERE Id IN 
+    (SELECT Followe{(followings ? "d" : "r")}Id FROM Followers 
+        WHERE Followe{(followings ? "r" : "d")}Id = '{userId}') ";
+            var query = 
+$@"{QueryBuildHelpers.Users.UserViewsQuery(whereClause)} 
 ORDER BY Id 
 {QueryBuildHelpers.OffsetCount.FetchWithOffsetWithReserveBlock(offset, count)} ";
+
+            using (var cmd = DbConnection.CreateCommand())
+            {
+                cmd.CommandText = query;
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     if (!reader.HasRows)

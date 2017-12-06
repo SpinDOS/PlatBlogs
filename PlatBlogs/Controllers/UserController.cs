@@ -69,22 +69,25 @@ namespace PlatBlogs.Controllers
                 return result;
             }
 
-            using (var cmd = DbConnection.CreateCommand())
-            {
-                var authorsBasicInfoQuery =
+
+            var singleAuthorQuery =
 $@" SELECT '{authorInfo.Id}'       AS Id, 
            '{authorInfo.FullName}' AS FullName, 
            '{authorInfo.UserName}' AS UserName, 
             @publicProfile         AS PublicProfile ";
 
-                cmd.CommandText = 
+            var postsWithAuthor = QueryBuildHelpers.Posts.PostsWithAuthorsQuery(singleAuthorQuery);
+            var query = 
 $@"DECLARE @publicProfile BIT;
    SET     @publicProfile = CAST({Convert.ToInt32(authorInfo.PublicProfile)} AS BIT);
 
-{QueryBuildHelpers.PostView.AvailablePostViewInfosQuery(myId, authorsBasicInfoQuery)} 
-ORDER BY {nameof(QueryBuildHelpers.PostView.FieldNames.PostDateTime)} DESC 
+{QueryBuildHelpers.Posts.PostViewsQuery(myId, postsWithAuthor)} 
+ORDER BY {nameof(QueryBuildHelpers.Posts.FieldNames.PostDateTime)} DESC 
 {QueryBuildHelpers.OffsetCount.FetchWithOffsetWithReserveBlock(offset, count)} ";
 
+            using (var cmd = DbConnection.CreateCommand())
+            {
+                cmd.CommandText = query;
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     if (!reader.HasRows)
@@ -111,7 +114,7 @@ ORDER BY {nameof(QueryBuildHelpers.PostView.FieldNames.PostDateTime)} DESC
             {
                 cmd.Parameters.AddWithValue("@normalizedUserName", name.ToUpper());
                 var userFilterWhereClause = "WHERE NormalizedUserName = @normalizedUserName";
-                cmd.CommandText = QueryBuildHelpers.UserBasicInfo.UsersBasicInfoQuery(userFilterWhereClause);
+                cmd.CommandText = QueryBuildHelpers.Users.AuthorsQuery(userFilterWhereClause);
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     if (!await reader.ReadAsync())

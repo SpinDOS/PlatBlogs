@@ -9,7 +9,7 @@ using PlatBlogs.Data;
 
 namespace PlatBlogs.Views._Partials
 {
-    public class UserViewModel : IRenderable, IUserBasicInfo
+    public class UserViewModel : IRenderable, IAuthor
     {
         public UserViewModel() { }
 
