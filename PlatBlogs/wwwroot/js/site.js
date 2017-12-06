@@ -120,9 +120,16 @@ function handleLoadMore() {
     });
 };
 
-
+function disableEmptySearch() {
+    var form = $("#search-form");
+    var input = form.children()[0];
+    form.submit(function (e) {
+        if (!input.value) e.preventDefault();
+    });
+};
 
 $(document).ready(function () {
+    disableEmptySearch();
     handleFollow();
     $(".load-more-form").each(handleLoadMore);
     $(".post-like-form").each(handleLike);
