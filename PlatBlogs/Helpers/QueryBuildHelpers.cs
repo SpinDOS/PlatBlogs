@@ -35,18 +35,18 @@ WHERE FollowedId = '{userId}' ";
         {
 
             public static string OpenedUsersFilterWhereClause(string viewerId) =>
-$@" {nameof(UserBasicInfo.FieldNames.PublicProfile)} = 1 OR 
-    {nameof(UserBasicInfo.FieldNames.Id)} = '{viewerId}' OR 
-    {nameof(UserBasicInfo.FieldNames.Id)} IN 
-        ({Followers.UserFollowersIdsQuery(viewerId)}) ";
+$@" WHERE {nameof(UserBasicInfo.FieldNames.PublicProfile)} = 1 OR 
+          {nameof(UserBasicInfo.FieldNames.Id)} = '{viewerId}' OR 
+          {nameof(UserBasicInfo.FieldNames.Id)} IN 
+              ({Followers.UserFollowersIdsQuery(viewerId)}) ";
 
             public static string FollowedUsersFilterWhereClause(string viewerId) =>
-$@" {nameof(UserBasicInfo.FieldNames.Id)} IN 
-        (SELECT FollowedId FROM Followers WHERE FollowerId = '{viewerId}') AND 
-    ({nameof(UserBasicInfo.FieldNames.PublicProfile)} = 1 OR 
-        {nameof(UserBasicInfo.FieldNames.Id)} IN 
-            ({Followers.UserFollowersIdsQuery(viewerId)}) 
-    ) ";
+$@" WHERE {nameof(UserBasicInfo.FieldNames.Id)} IN 
+              (SELECT FollowedId FROM Followers WHERE FollowerId = '{viewerId}') AND 
+          ({nameof(UserBasicInfo.FieldNames.PublicProfile)} = 1 OR 
+              {nameof(UserBasicInfo.FieldNames.Id)} IN 
+                  ({Followers.UserFollowersIdsQuery(viewerId)}) 
+          ) ";
 
         }
 
@@ -62,7 +62,7 @@ $@" SELECT Id            AS {nameof(FieldNames.Id)},
            PublicProfile AS {nameof(FieldNames.PublicProfile)} 
 
 FROM AspNetUsers 
-WHERE ({userFilterwhereClause}) ";
+{userFilterwhereClause} ";
 
         }
 

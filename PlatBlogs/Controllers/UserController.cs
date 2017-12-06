@@ -110,7 +110,7 @@ ORDER BY {nameof(QueryBuildHelpers.PostView.FieldNames.PostDateTime)} DESC
             using (var cmd = DbConnection.CreateCommand())
             {
                 cmd.Parameters.AddWithValue("@normalizedUserName", name.ToUpper());
-                var userFilterWhereClause = "NormalizedUserName = @normalizedUserName";
+                var userFilterWhereClause = "WHERE NormalizedUserName = @normalizedUserName";
                 cmd.CommandText = QueryBuildHelpers.UserBasicInfo.UsersBasicInfoQuery(userFilterWhereClause);
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
