@@ -65,7 +65,7 @@ $@"SELECT *
 FROM ({QueryBuildHelpers.Posts.PostViewsQuery(myId, postsWithAuthorsQuery)}) _Temp 
 ORDER BY    ({nameof(FieldNames.AllLikesCount)} - 
                 DATEDIFF(DAY, {nameof(FieldNames.PostDateTime)}, GETDATE()) ) DESC, 
-            DATEDIFF(SECOND, {nameof(FieldNames.PostDateTime)}, GETDATE()) ASC 
+            {nameof(FieldNames.PostDateTime)} DESC 
 {QueryBuildHelpers.OffsetCount.FetchWithOffsetWithReserveBlock(offset, count)} ";
 
             using (var cmd = DbConnection.CreateCommand())
