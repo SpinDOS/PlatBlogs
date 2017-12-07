@@ -44,7 +44,7 @@ namespace PlatBlogs.Pages
 
                     cmd.CommandText = "NewPost";
                     if (await cmd.ExecuteNonQueryAsync() == 1)
-                        return RedirectToPage("/user/" + User.Identity.Name);
+                        return LocalRedirect("/user/" + User.Identity.Name);
                     ModelState.AddModelError(string.Empty, "Error writing text to database");
                 }
             }

@@ -12,7 +12,7 @@ namespace PlatBlogs.Pages
         public IActionResult OnGet()
         {
             if (User.Identity.IsAuthenticated)
-                return RedirectToPage("Home");
+                return LocalRedirect("/Home");
             return Page();
         }
     }
