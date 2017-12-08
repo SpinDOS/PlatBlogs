@@ -283,3 +283,8 @@ a:link, a:visited, a:hover, a:active  {
 .nickname-group {
     display: inline-block;
 }
+
+.smaller-captions > h2 {
+    margin: 0;
+    font-size: 150%;
+}

@@ -1,0 +1,20 @@
+﻿@model SearchModel
+@{
+    ViewData["Title"] = "Search";
+}
+
+<h1>Search for @Model.Q</h1>
+
+<div class="smaller-captions">
+    @{
+        ViewData["Main"] = "Users: ";
+    }
+    @await Html.PartialAsync("~/Views/SimpleListWithLoadMoreView.cshtml", Model.Users)
+    
+    <hr/>
+
+    @{
+        ViewData["Main"] = "Posts: ";
+    }
+    @await Html.PartialAsync("~/Views/SimpleListWithLoadMoreView.cshtml", Model.Posts)
+</div>
