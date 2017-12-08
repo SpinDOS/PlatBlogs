@@ -9,7 +9,6 @@ using PlatBlogs.Attributes;
 using PlatBlogs.Extensions;
 using PlatBlogs.Helpers;
 using PlatBlogs.Views._Partials;
-using static PlatBlogs.Helpers.QueryBuildHelpers.Posts;
 
 namespace PlatBlogs.Controllers
 {
@@ -55,18 +54,16 @@ namespace PlatBlogs.Controllers
         private async Task<ListWithLoadMoreModel> GetPopularPostsAsync(string myId, int offset, int count)
         {
             ListWithLoadMoreModel result = new ListWithLoadMoreModel();
-
-            var whereClause = QueryBuildHelpers.WhereClause.OpenedUsersWhereClause(myId);
-            var authorsQuery = QueryBuildHelpers.Users.AuthorsQuery(whereClause);
-            var postsWithAuthorsQuery = QueryBuildHelpers.Posts.PostsWithAuthorsQuery(authorsQuery);
+            
             var query =
-
-$@"SELECT * 
-FROM ({QueryBuildHelpers.Posts.PostViewsQuery(myId, postsWithAuthorsQuery)}) _Temp 
-ORDER BY    ({nameof(FieldNames.AllLikesCount)} - 
-                DATEDIFF(DAY, {nameof(FieldNames.PostDateTime)}, GETDATE()) ) DESC, 
-            {nameof(FieldNames.PostDateTime)} DESC 
-{QueryBuildHelpers.OffsetCount.FetchWithOffsetWithReserveBlock(offset, count)} ";
+$@" 
+SELECT {QueryBuildHelpers.SelectFields.PostView("U", "P")} 
+FROM Posts P JOIN AspNetUsers U ON P.AuthorId = U.Id 
+{QueryBuildHelpers.CrossApply.LikesCounts(myId, "U", "P")} 
+WHERE {QueryBuildHelpers.WhereClause.OpenedUsersWhereClause(myId, "U")} 
+ORDER BY (AllLikesCount - DATEDIFF(DAY, P.DateTime, GETDATE()) ) DESC, P.DateTime DESC 
+{QueryBuildHelpers.OffsetCount.FetchWithOffsetWithReserveBlock(offset, count)} 
+";
 
             using (var cmd = DbConnection.CreateCommand())
             {

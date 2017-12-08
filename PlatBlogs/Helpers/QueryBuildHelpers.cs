@@ -21,108 +21,71 @@ namespace PlatBlogs.Helpers
 
 
         }
+
         public static class Followers
         {
-            public enum FieldNames { FollowerId, }
-
             public static string UserFollowersIdsQuery(string userId) =>
-$@" SELECT FollowerId AS {nameof(FieldNames.FollowerId)} 
+$@" 
+SELECT FollowerId 
 FROM Followers 
-WHERE FollowedId = '{userId}' ";
+WHERE FollowedId = '{userId}' 
+";
 
         }
 
         public static class WhereClause
         {
 
-            public static string OpenedUsersWhereClause(string viewerId) =>
-$@" WHERE {nameof(Users.FieldNames.PublicProfile)} = 1 OR 
-          {nameof(Users.FieldNames.Id)} = '{viewerId}' OR 
-          {nameof(Users.FieldNames.Id)} IN 
-              ({Followers.UserFollowersIdsQuery(viewerId)}) ";
+            public static string OpenedUsersWhereClause(string viewerId, string U = "U") =>
+$@" 
+{U}.PublicProfile = 1 OR {U}.Id = '{viewerId}' OR 
+    {U}.Id IN ({Followers.UserFollowersIdsQuery(viewerId)}) 
+";
 
-            public static string FollowedUsersWhereClause(string viewerId) =>
-$@" WHERE {nameof(Users.FieldNames.Id)} IN 
-              (SELECT FollowedId FROM Followers WHERE FollowerId = '{viewerId}') AND 
-          ({nameof(Users.FieldNames.PublicProfile)} = 1 OR 
-              {nameof(Users.FieldNames.Id)} IN 
-                  ({Followers.UserFollowersIdsQuery(viewerId)}) 
-          ) ";
+            public static string FollowedUsersWhereClause(string viewerId, string U = "U") =>
+$@" 
+{U}.Id IN (SELECT FollowedId FROM Followers WHERE FollowerId = '{viewerId}') AND 
+    ({U}.PublicProfile = 1 OR {U}.Id IN ({Followers.UserFollowersIdsQuery(viewerId)}) ) 
+";
 
         }
 
-        public static class Users
+        public static class SelectFields
         {
-            public enum FieldNames
-            {
-                Id, FullName, UserName,
-                DateOfBirth, City, ShortInfo,
-                AvatarPath, PublicProfile,
-            }
+            public static string UserView(string U = "U") =>
+                $" {U}.Id, {U}.FullName, {U}.UserName, {U}.AvatarPath, {U}.PublicProfile, {U}.ShortInfo ";
 
-            public static string UsersQuery(IEnumerable<FieldNames> fields, string usersWhereClause = null) =>
-                $@" SELECT {string.Join(", ", fields)} FROM AspNetUsers {usersWhereClause} ";
-
-            public static string AuthorsQuery(string usersWhereClause = null) =>
-                UsersQuery(new[] 
-                    {FieldNames.Id, FieldNames.FullName, FieldNames.UserName, FieldNames.PublicProfile},
-                    usersWhereClause);
-
-            public static string UserViewsQuery(string usersWhereClause = null) =>
-                UsersQuery(new[]
-                        {FieldNames.Id, FieldNames.FullName, FieldNames.UserName,
-                         FieldNames.AvatarPath, FieldNames.PublicProfile, FieldNames.ShortInfo},
-                    usersWhereClause);
+            public static string Author(string U = "U") =>
+                $" {U}.FullName, {U}.UserName, {U}.PublicProfile ";
+            public static string Post(string P = "P") => 
+                $" {P}.AuthorId, {P}.Id, {P}.DateTime, {P}.Message ";
+            public static string PostView(string U = "U", string P = "P") =>
+                $" {Post(P)}, AllLikesCount, MyLikesCount, {Author(U)} ";
 
         }
 
-        public static class Posts
+        public static class CrossApply
         {
-            public enum FieldNames
-            {
-                AuthorId, PostId, PostDateTime, PostMessage,
-                AllLikesCount, MyLikesCount,
-                AuthorFullName, AuthorUserName, AuthorPublicProfile
-            }
+            public static string AllLikesCount(string U = "U", string P = "P") => 
+$@" 
+CROSS APPLY (SELECT AllLikesCount = COUNT(*) 
+             FROM Likes 
+             WHERE LikedUserId = {U}.Id AND 
+                   LikedPostId = {P}.Id) _AllLikesQuery 
+";
 
-            public static string PostsWithAuthorsQuery(string authorsQuery, string postsWhereClause = null) =>
-$@" SELECT P.AuthorId      AS {nameof(FieldNames.AuthorId)}, 
-           P.Id            AS {nameof(FieldNames.PostId)}, 
-           P.DateTime      AS {nameof(FieldNames.PostDateTime)}, 
-           P.Message       AS {nameof(FieldNames.PostMessage)}, 
-           A.FullName      AS {nameof(FieldNames.AuthorFullName)}, 
-           A.UserName      AS {nameof(FieldNames.AuthorUserName)}, 
-           A.PublicProfile AS {nameof(FieldNames.AuthorPublicProfile)}
+            public static string MyLikesCount(string viewerId, string U = "U", string P = "P") =>
+$@" 
+CROSS APPLY (SELECT MyLikesCount = COUNT(*) 
+             FROM Likes 
+             WHERE LikedUserId = {U}.Id AND 
+                   LikedPostId = {P}.Id AND 
+                   LikerId = '{viewerId}') _MyLikesQuery 
+";
 
-FROM Posts P
-JOIN ({authorsQuery}) A
-ON P.AuthorId = A.Id 
-{postsWhereClause} ";
-
-            public static string PostViewsQuery(string viewerId, string postsWithAuthorsQuery) =>
-$@" SELECT {nameof(FieldNames.AuthorId)}, 
-           {nameof(FieldNames.PostId)}, 
-           {nameof(FieldNames.PostDateTime)}, 
-           {nameof(FieldNames.PostMessage)}, 
-
-    (SELECT COUNT(*) FROM Likes 
-        WHERE LikedUserId = {nameof(FieldNames.AuthorId)} AND 
-              LikedPostId = {nameof(FieldNames.PostId)}) 
-    AS     {nameof(FieldNames.AllLikesCount)}, 
-
-    (SELECT COUNT(*) FROM Likes 
-        WHERE LikedUserId = {nameof(FieldNames.AuthorId)} AND 
-              LikedPostId = {nameof(FieldNames.PostId)} AND 
-              LikerId = '{viewerId}') 
-    AS     {nameof(FieldNames.MyLikesCount)}, 
-
-           {nameof(FieldNames.AuthorFullName)}, 
-           {nameof(FieldNames.AuthorUserName)}, 
-           {nameof(FieldNames.AuthorPublicProfile)}
-
-FROM ({postsWithAuthorsQuery}) _PostsWithAuthorInfo";
-
+            public static string LikesCounts(string viewerId, string U = "U", string P = "P") =>
+                $"{AllLikesCount(U, P)} {MyLikesCount(viewerId, U, P)}";
         }
-
+        
     }
 }

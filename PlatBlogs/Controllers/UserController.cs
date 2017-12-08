@@ -71,19 +71,23 @@ namespace PlatBlogs.Controllers
 
 
             var singleAuthorQuery =
-$@" SELECT '{authorInfo.Id}'       AS Id, 
-           '{authorInfo.FullName}' AS FullName, 
-           '{authorInfo.UserName}' AS UserName, 
-            @publicProfile         AS PublicProfile ";
+$@" 
+SELECT '{authorInfo.Id}'       AS Id, 
+       '{authorInfo.FullName}' AS FullName, 
+       '{authorInfo.UserName}' AS UserName, 
+        @publicProfile         AS PublicProfile 
+";
+            var query =
+$@"
+DECLARE @publicProfile BIT;
+SET     @publicProfile = CAST({Convert.ToInt32(authorInfo.PublicProfile)} AS BIT);
 
-            var postsWithAuthor = QueryBuildHelpers.Posts.PostsWithAuthorsQuery(singleAuthorQuery);
-            var query = 
-$@"DECLARE @publicProfile BIT;
-   SET     @publicProfile = CAST({Convert.ToInt32(authorInfo.PublicProfile)} AS BIT);
-
-{QueryBuildHelpers.Posts.PostViewsQuery(myId, postsWithAuthor)} 
-ORDER BY {nameof(QueryBuildHelpers.Posts.FieldNames.PostDateTime)} DESC 
-{QueryBuildHelpers.OffsetCount.FetchWithOffsetWithReserveBlock(offset, count)} ";
+SELECT {QueryBuildHelpers.SelectFields.PostView("U", "P")} 
+FROM ({singleAuthorQuery}) U JOIN Posts P ON U.Id = P.AuthorId 
+{QueryBuildHelpers.CrossApply.LikesCounts(myId, "U", "P")} 
+ORDER BY P.DateTime DESC 
+{QueryBuildHelpers.OffsetCount.FetchWithOffsetWithReserveBlock(offset, count)} 
+";
 
             using (var cmd = DbConnection.CreateCommand())
             {
@@ -113,8 +117,12 @@ ORDER BY {nameof(QueryBuildHelpers.Posts.FieldNames.PostDateTime)} DESC
             using (var cmd = DbConnection.CreateCommand())
             {
                 cmd.Parameters.AddWithValue("@normalizedUserName", name.ToUpper());
-                var userFilterWhereClause = "WHERE NormalizedUserName = @normalizedUserName";
-                cmd.CommandText = QueryBuildHelpers.Users.AuthorsQuery(userFilterWhereClause);
+                cmd.CommandText =
+$@"
+SELECT U.Id, {QueryBuildHelpers.SelectFields.Author("U")} 
+FROM AspNetUsers U 
+WHERE NormalizedUserName = @normalizedUserName 
+";
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     if (!await reader.ReadAsync())
