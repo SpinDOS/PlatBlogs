@@ -99,8 +99,6 @@ function handleLoadMore() {
 
         var url = form.attr("action");
 
-        $('<input type="hidden" name="ajax" value="true">').appendTo(form);
-
         $.ajax({
             type: "POST",
             url: url,
