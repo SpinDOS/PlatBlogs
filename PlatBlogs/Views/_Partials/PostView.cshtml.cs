@@ -9,13 +9,28 @@ using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using PlatBlogs.Data;
 using PlatBlogs.Extensions;
+using PlatBlogs.Interfaces;
 
 namespace PlatBlogs.Views._Partials
 {
-    public class PostViewModel : IRenderable
+    public class PostViewModel : IPost, IRenderable
     {
-        public Post Post { get; set; }
+        public PostViewModel() { }
+
+        public PostViewModel(Post post, bool liked, int likesCount)
+        {
+            this.Author = post.Author;
+            this.Id = post.Id;
+            this.Message = post.Message;
+            this.DateTime = post.DateTime;
+            this.Liked = liked;
+            this.LikesCount = likesCount;
+        }
         public IAuthor Author { get; set; }
+        public int Id { get; set; }
+        public string Message { get; set; }
+        public DateTime DateTime { get; set; }
+
         public bool Liked { get; set; }
         public int LikesCount { get; set; }
         
@@ -26,27 +41,21 @@ namespace PlatBlogs.Views._Partials
             {
                 while (await reader.ReadAsync())
                 {
-                    var post = new Post()
+                    var author = new UserViewModel() { Id = reader.GetString(0) };
+                    var postView = new PostViewModel()
                     {
-                        AuthorId = reader.GetString(0),
+                        Author = author,
                         Id = reader.GetInt32(1),
                         DateTime = reader.GetDateTime(2),
                         Message = reader.GetString(3),
-                    };
-                    var postView = new PostViewModel()
-                    {
-                        Post = post,
                         LikesCount = reader.GetInt32(4),
                         Liked = reader.GetInt32(5) == 1,
                     };
                     if (reader.FieldCount > 8)
                     {
-                        postView.Author = new SimpleAuthor
-                        { 
-                            FullName = reader.GetString(6),
-                            UserName = reader.GetString(7),
-                            PublicProfile = reader.GetBoolean(8),
-                        };
+                        author.FullName = reader.GetString(6);
+                        author.UserName = reader.GetString(7);
+                        author.PublicProfile = reader.GetBoolean(8);
                     }
                     result.Add(postView);
                 }
@@ -57,5 +66,6 @@ namespace PlatBlogs.Views._Partials
 
         public async Task<object> RenderAsync(IHtmlHelper iHtmlHelper) 
             => await iHtmlHelper.PartialAsync("~/Views/_Partials/PostView.cshtml", this);
+
     }
 }

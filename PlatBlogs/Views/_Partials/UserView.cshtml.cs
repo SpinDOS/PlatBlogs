@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using PlatBlogs.Data;
+using PlatBlogs.Interfaces;
 
 namespace PlatBlogs.Views._Partials
 {
-    public class UserViewModel : IRenderable, IAuthor
+    public class UserViewModel : IUserView, IRenderable 
     {
         public UserViewModel() { }
 

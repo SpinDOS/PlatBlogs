@@ -8,10 +8,11 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using PlatBlogs.Data;
 using PlatBlogs.Extensions;
+using PlatBlogs.Interfaces;
 
 namespace PlatBlogs.Views._Partials
 {
-    public class UserLeftMenuModel: IAuthor
+    public class UserLeftMenuModel: IUser
     {
         public string Id { get; set; }
         public string FullName { get; set; }
