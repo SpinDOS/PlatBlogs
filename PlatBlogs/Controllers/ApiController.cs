@@ -34,7 +34,7 @@ namespace PlatBlogs.Controllers
                 return new JsonResult(new { error = $"User {author} not found" });
 
             var myId = await DbConnection.GetUserIdByNameAsync(User.Identity.Name);
-            if (!authorPublicProfile)
+            if (!authorPublicProfile && authorId != myId)
             {
                 if (!await DbConnection.CheckFollowingAsync(myId, authorId))
                     return new JsonResult(new { error = $"Cannot access {author}'s posts: private profile" });
