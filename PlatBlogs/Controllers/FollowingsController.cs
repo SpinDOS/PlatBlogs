@@ -8,94 +8,60 @@ using Microsoft.AspNetCore.Mvc;
 using PlatBlogs.Attributes;
 using PlatBlogs.Extensions;
 using PlatBlogs.Helpers;
+using PlatBlogs.Interfaces;
 using PlatBlogs.Views._Partials;
 
 namespace PlatBlogs.Controllers
 {
     [Authorize]
     [OffsetExceptionFilter]
-    public class FollowingsController : Controller
+    public class FollowingsController : OffsetCountBaseController
     {
-        public FollowingsController(DbConnection dbConnection) { DbConnection = dbConnection; }
-        public DbConnection DbConnection { get; set; }
+        public FollowingsController(DbConnection dbConnection) : base(dbConnection) { }
+        public static int PostsPortion => 1;
 
         [HttpGet("/followings/{name}")]
         public async Task<IActionResult> Followings(string name, int offset = 0)
         {
-            int count = PostsPortion;
-            int sum = OffsetCountResolver.ResolveOffsetCountWithReserve(offset, ref count);
-
-            var userLeftMenuModel = await UserLeftMenuModel.FromDatabase(DbConnection, name, User);
-            if (userLeftMenuModel == null)
-                return NotFound();
-
-            var followings = await GetUsersAsync(name, 0, sum, true);
-            if (followings.DefaultText == null)
-                followings.DefaultText = "No followings yet";
-
-            ViewData["User"] = userLeftMenuModel;
-            ViewData["Title"] = $"{userLeftMenuModel.UserName}'s followings";
-            ViewData["Main"] = $"{userLeftMenuModel.FullName}'s followings";
-
-            return View("~/Views/SimpleListWithLoadMoreView.cshtml", followings);
+            Task<ListWithLoadMoreModel> UsersLoader(string id, int offset_, int count, IAuthor author) // local function
+                => GetUsersAsync(id, offset_, count, name, true);
+            return await base.Get(name, UsersLoader, offset, PostsPortion,
+                u => "No followings yet", u => $"{u.UserName}'s followings", u => $"{u.FullName}'s followings");
         }
 
 
         [HttpPost("/followings/{name}")]
         public async Task<IActionResult> FollowingsPost(string name, [FromForm] int offset)
         {
-            int count = PostsPortion;
-            OffsetCountResolver.ResolveOffsetCountWithReserve(offset, ref count);
-
-            var followings = await GetUsersAsync(name, offset, count, true);
-            if (followings == null)
-                return NotFound();
-            return PartialView("~/Views/_Partials/ListWithLoadMore.cshtml", followings);
+            Task<ListWithLoadMoreModel> UsersLoader(string id, int offset_, int count, IAuthor author) // local function
+                => GetUsersAsync(id, offset_, count, name, true);
+            return await base.Post(name, UsersLoader, offset, PostsPortion);
         }
 
 
         [HttpGet("/followers/{name}")]
         public async Task<IActionResult> Followers(string name, int offset = 0)
         {
-            int count = PostsPortion;
-            int sum = OffsetCountResolver.ResolveOffsetCountWithReserve(offset, ref count);
-
-            var userLeftMenuModel = await UserLeftMenuModel.FromDatabase(DbConnection, name, User);
-            if (userLeftMenuModel == null)
-                return NotFound();
-
-            var followers = await GetUsersAsync(name, 0, sum, false);
-            if (followers.DefaultText == null)
-                followers.DefaultText = "No followers yet";
-
-            ViewData["User"] = userLeftMenuModel;
-            ViewData["Title"] = $"{userLeftMenuModel.UserName}'s followers";
-            ViewData["Main"] = $"{userLeftMenuModel.FullName}'s followers";
-
-            return View("~/Views/SimpleListWithLoadMoreView.cshtml", followers);
+            Task<ListWithLoadMoreModel> UsersLoader(string id, int offset_, int count, IAuthor author) // local function
+                => GetUsersAsync(id, offset_, count, name, false);
+            return await base.Get(name, UsersLoader, offset, PostsPortion,
+                u => "No followers yet", u => $"{u.UserName}'s followers", u => $"{u.FullName}'s followers");
         }
 
 
         [HttpPost("/followers/{name}")]
         public async Task<IActionResult> FollowersPost(string name, [FromForm] int offset)
         {
-            int count = PostsPortion;
-            OffsetCountResolver.ResolveOffsetCountWithReserve(offset, ref count);
-
-            var followers = await GetUsersAsync(name, offset, count, false);
-            if (followers == null)
-                return NotFound();
-            return PartialView("~/Views/_Partials/ListWithLoadMore.cshtml", followers);
+            Task<ListWithLoadMoreModel> UsersLoader(string id, int offset_, int count, IAuthor author) // local function
+                => GetUsersAsync(id, offset_, count, name, false);
+            return await base.Post(name, UsersLoader, offset, PostsPortion);
         }
 
 
 
-        private async Task<ListWithLoadMoreModel> GetUsersAsync(string name, int offset, int count, bool followings)
+        private async Task<ListWithLoadMoreModel> GetUsersAsync(string userId, int offset, int count, 
+            string name, bool followings)
         {
-            var userId = await DbConnection.GetUserIdByNameAsync(name);
-            if (userId == null)
-                return null;
-
             ListWithLoadMoreModel result = new ListWithLoadMoreModel();
             
             var query = 
@@ -114,7 +80,9 @@ ORDER BY Id
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     if (!reader.HasRows)
-                        return result;
+                    {
+                        return offset == 0 ? result : null;
+                    }
                     var users = await UserViewModel.FromSqlReaderAsync(reader);
                     if (users.Count == count + 1)
                     {
@@ -130,6 +98,5 @@ ORDER BY Id
             return result;
         }
 
-        public static int PostsPortion => 1;
     }
 }

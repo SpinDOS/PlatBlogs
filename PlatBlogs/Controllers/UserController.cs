@@ -8,79 +8,62 @@ using Microsoft.AspNetCore.Mvc;
 using PlatBlogs.Attributes;
 using PlatBlogs.Extensions;
 using PlatBlogs.Helpers;
+using PlatBlogs.Interfaces;
 using PlatBlogs.Views._Partials;
 
 namespace PlatBlogs.Controllers
 {
-    [Authorize]
-    [OffsetExceptionFilter]
-    public class UserController : Controller
+    public class UserController : OffsetCountBaseController
     {
-        public UserController(DbConnection dbConnection) { DbConnection = dbConnection; }
-        public DbConnection DbConnection { get; set; }
+        public UserController(DbConnection dbConnection) : base(dbConnection) { }
+        public static int PostsPortion => 1;
 
         [HttpGet("/user/{name}")]
         public async Task<IActionResult> Index(string name, [FromQuery] int offset = 0)
         {
-            int count = PostsPortion;
-            int sum = OffsetCountResolver.ResolveOffsetCountWithReserve(offset, ref count);
-
-            var userLeftMenuModel = await UserLeftMenuModel.FromDatabase(DbConnection, name, User);
-            if (userLeftMenuModel == null)
-                return NotFound();
-
-            var posts = await GetUserPostsAsync(name, 0, sum);
-            if (posts.DefaultText == null)
-                posts.DefaultText = "No posts yet";
-
-            ViewData["User"] = userLeftMenuModel;
-            ViewData["Title"] = $"{userLeftMenuModel.UserName}'s posts";
-            ViewData["Main"] = $"{userLeftMenuModel.FullName}'s posts";
-
-            return View("~/Views/SimpleListWithLoadMoreView.cshtml", posts);
+            ItemsLoaderDelegate postsLoader = GetUserPostsAsync;
+            return await base.Get(name, postsLoader, offset, PostsPortion,
+                u => "No posts yet", u => $"{u.UserName}'s posts", u => $"{u.FullName}'s posts");
         }
 
 
         [HttpPost("/user/{name}")]
         public async Task<IActionResult> IndexPost(string name, [FromForm] int offset)
         {
-            int count = PostsPortion;
-            OffsetCountResolver.ResolveOffsetCountWithReserve(offset, ref count);
-
-            var posts = await GetUserPostsAsync(name, offset, count);
-            if (posts == null)
-                return NotFound();
-            return PartialView("~/Views/_Partials/ListWithLoadMore.cshtml", posts);
+            ItemsLoaderDelegate postsLoader = GetUserPostsAsync;
+            return await base.Post(User.Identity.Name, postsLoader, offset, PostsPortion);
         }
 
-        private async Task<ListWithLoadMoreModel> GetUserPostsAsync(string name, int offset, int count)
+        private async Task<ListWithLoadMoreModel> GetUserPostsAsync(string authorId, int offset, int count, IAuthor author)
         {
+            var result = new ListWithLoadMoreModel();
             var myId = await DbConnection.GetUserIdByNameAsync(User.Identity.Name);
 
-            var authorInfo = await GetUserInfo(name, myId);
-            if (authorInfo == null)
-                return null;
-
-            ListWithLoadMoreModel result = new ListWithLoadMoreModel();
-            if (!authorInfo.OpenedToRead)
+            if (author == null)
             {
-                result.DefaultText = $"User {authorInfo.UserName} has private profile. " +
-                                     $"Only people followed by {authorInfo.UserName} can access posts";
+                author = await GetAuthorById(authorId);
+            }
+
+            if (!await DbConnection.IsOpenedForViewerAsync(author, myId))
+            {
+                result.DefaultText = 
+                    $"User {author.UserName} has private profile. " +
+                    $"Only people followed by {author.UserName} can access posts";
                 return result;
             }
 
-
             var singleAuthorQuery =
 $@" 
-SELECT '{authorInfo.Id}'       AS Id, 
-       '{authorInfo.FullName}' AS FullName, 
-       '{authorInfo.UserName}' AS UserName, 
+SELECT '{author.Id}'       AS Id, 
+       '{author.FullName}' AS FullName, 
+       '{author.UserName}' AS UserName, 
         @publicProfile         AS PublicProfile 
 ";
+
             var query =
 $@"
 DECLARE @publicProfile BIT;
-SET     @publicProfile = CAST({Convert.ToInt32(authorInfo.PublicProfile)} AS BIT);
+SET     @publicProfile = CAST({Convert.ToInt32(author.PublicProfile)} AS BIT);
 
 SELECT {QueryBuildHelpers.SelectFields.PostView("U", "P")} 
 FROM ({singleAuthorQuery}) U JOIN Posts P ON U.Id = P.AuthorId 
@@ -95,12 +78,14 @@ ORDER BY P.DateTime DESC
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     if (!reader.HasRows)
-                        return result;
+                    {
+                        return offset == 0 ? result : null;
+                    }
                     var posts = await PostViewModel.FromSqlReaderAsync(reader);
                     if (posts.Count == count + 1)
                     {
                         posts.RemoveAt(posts.Count - 1);
-                        result.LoadMoreModel = new LoadMoreModel("/user/" + name)
+                        result.LoadMoreModel = new LoadMoreModel("/user/" + author.UserName)
                         {
                             Offset = offset + count,
                         };
@@ -111,23 +96,23 @@ ORDER BY P.DateTime DESC
             return result;
         }
 
-        private async Task<UserInfoForPost> GetUserInfo(string name, string viewerId)
+        private async Task<IAuthor> GetAuthorById(string userId)
         {
-            UserInfoForPost result = null;
-            using (var cmd = DbConnection.CreateCommand())
-            {
-                cmd.Parameters.AddWithValue("@normalizedUserName", name.ToUpper());
-                cmd.CommandText =
+            var query =
 $@"
 SELECT U.Id, {QueryBuildHelpers.SelectFields.Author("U")} 
 FROM AspNetUsers U 
-WHERE NormalizedUserName = @normalizedUserName 
+WHERE Id = '{userId}'
 ";
+
+            using (var cmd = DbConnection.CreateCommand())
+            {
+                cmd.CommandText = query;
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     if (!await reader.ReadAsync())
                         return null;
-                    result = new UserInfoForPost()
+                    return new UserViewModel()
                     {
                         Id = reader.GetString(0),
                         FullName = reader.GetString(1),
@@ -136,17 +121,7 @@ WHERE NormalizedUserName = @normalizedUserName
                     };
                 }
             }
-            result.OpenedToRead = result.PublicProfile || result.Id == viewerId || 
-                await DbConnection.CheckFollowingAsync(viewerId, result.Id);
-            
-            return result;
         }
-        public static int PostsPortion => 1;
 
-        private class UserInfoForPost
-        {
-            public string Id, FullName, UserName;
-            public bool PublicProfile, OpenedToRead;
-        }
     }
 }

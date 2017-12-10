@@ -8,6 +8,7 @@ using PlatBlogs.Exceptions;
 
 namespace PlatBlogs.Attributes
 {
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true, Inherited = true)]
     public class OffsetExceptionFilterAttribute : ExceptionFilterAttribute
     {
         public override void OnException(ExceptionContext context)
@@ -17,10 +18,7 @@ namespace PlatBlogs.Attributes
                 context.ExceptionHandled = true;
                 context.Result = new BadRequestResult();
             }
-            else
-            {
-                base.OnException(context);
-            }
+            base.OnException(context);
         }
     }
 }

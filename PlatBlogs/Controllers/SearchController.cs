@@ -8,29 +8,32 @@ using Microsoft.AspNetCore.Mvc;
 using PlatBlogs.Attributes;
 using PlatBlogs.Extensions;
 using PlatBlogs.Helpers;
+using PlatBlogs.Interfaces;
 using PlatBlogs.Views;
 using PlatBlogs.Views._Partials;
 
 namespace PlatBlogs.Controllers
 {
-    [Authorize]
-    [OffsetExceptionFilter]
-    public class SearchController : Controller
+    public class SearchController : OffsetCountBaseController
     {
-        public SearchController(DbConnection dbConnection) { DbConnection = dbConnection; }
-        public DbConnection DbConnection { get; set; }
+        public SearchController(DbConnection dbConnection): base(dbConnection) { }
+
+        public static int UsersPortion => 1;
+        public static int PostsPortion => 1;
+
+        private bool CheckQ(string q) => !string.IsNullOrWhiteSpace(q) && q.Length <= 50;
 
         public async Task<IActionResult> Index([FromQuery] string q)
         {
-            if (string.IsNullOrWhiteSpace(q) || q.Length > 50)
+            if (!CheckQ(q))
                 return BadRequest();
 
             var userLeftMenuModel = await UserLeftMenuModel.FromDatabase(DbConnection, User.Identity.Name, User);
             ViewData["User"] = userLeftMenuModel;
 
-            var users = await SearchUsersAsync(userLeftMenuModel.Id, q, 0, UsersPortion);
+            var users = await SearchUsersAsync(userLeftMenuModel.Id, 0, UsersPortion, q);
             users.DefaultText = "No users found";
-            var posts = await SearchPostsAsync(userLeftMenuModel.Id, q, 0, PostsPortion);
+            var posts = await SearchPostsAsync(userLeftMenuModel.Id, 0, PostsPortion, q);
             posts.DefaultText = "No posts found";
 
             var model = new SearchModel()
@@ -43,99 +46,16 @@ namespace PlatBlogs.Controllers
             return View("~/Views/Search.cshtml", model);
         }
 
-        public async Task<IActionResult> Posts([FromQuery] string q, [FromQuery] int offset = 0)
-        {
-            if (string.IsNullOrWhiteSpace(q) || q.Length > 50)
-                return BadRequest();
 
-            int count = PostsPortion;
-            int sum = OffsetCountResolver.ResolveOffsetCountWithReserve(offset, ref count);
-
-            var userLeftMenuModel = await UserLeftMenuModel.FromDatabase(DbConnection, User.Identity.Name, User);
-
-            var posts = await SearchPostsAsync(userLeftMenuModel.Id, q, 0, sum);
-            posts.DefaultText = "No posts found for " + q;
-
-            ViewData["User"] = userLeftMenuModel;
-            ViewData["Main"] = "Search posts: " + q;
-
-            return View("~/Views/SimpleListWithLoadMoreView.cshtml", posts);
-        }
-
-
-        [HttpPost]
-        [ActionName("Posts")]
-        public async Task<IActionResult> PostsPost([FromForm] string q, [FromForm] int offset)
-        {
-            if (string.IsNullOrWhiteSpace(q) || q.Length > 50)
-                return BadRequest();
-
-            int count = PostsPortion;
-            OffsetCountResolver.ResolveOffsetCountWithReserve(offset, ref count);
-
-            var myId = await DbConnection.GetUserIdByNameAsync(User.Identity.Name);
-
-            var posts = await SearchPostsAsync(myId, q, offset, count);
-            return PartialView("~/Views/_Partials/ListWithLoadMore.cshtml", posts);
-        }
-
-        private async Task<ListWithLoadMoreModel> SearchPostsAsync(string myId, string q, int offset, int count)
-        {
-            ListWithLoadMoreModel result = new ListWithLoadMoreModel();
-
-            var query =
-$@" 
-SELECT {QueryBuildHelpers.SelectFields.PostView("U", "P")} 
-FROM Posts P JOIN AspNetUsers U ON P.AuthorId = U.Id 
-{QueryBuildHelpers.CrossApply.LikesCounts(myId, "U", "P")} 
-CROSS APPLY (SELECT Pos = CHARINDEX(@q, UPPER(P.Message)) ) _PosCalculation
-WHERE ({QueryBuildHelpers.WhereClause.OpenedUsersWhereClause(myId, "U")}) AND Pos > 0
-ORDER BY Pos ASC, LEN(P.Message) ASC 
-{QueryBuildHelpers.OffsetCount.FetchWithOffsetWithReserveBlock(offset, count)} 
-";
-
-            using (var cmd = DbConnection.CreateCommand())
-            {
-                cmd.Parameters.AddWithValue("@q", q.ToUpper());
-                cmd.CommandText = query;
-                using (var reader = await cmd.ExecuteReaderAsync())
-                {
-                    if (!reader.HasRows)
-                        return result;
-                    var posts = await PostViewModel.FromSqlReaderAsync(reader);
-                    if (posts.Count == count + 1)
-                    {
-                        posts.RemoveAt(posts.Count - 1);
-                        result.LoadMoreModel = new LoadMoreModel("/search/posts")
-                        {
-                            Offset = offset + count,
-                        };
-                        result.LoadMoreModel.AdditionalFields["q"] = q;
-                    }
-                    result.Elements = posts;
-                }
-            }
-            return result;
-        }
 
         public async Task<IActionResult> Users([FromQuery] string q, [FromQuery] int offset = 0)
         {
-            if (string.IsNullOrWhiteSpace(q) || q.Length > 50)
+            if (!CheckQ(q))
                 return BadRequest();
-
-            int count = UsersPortion;
-            int sum = OffsetCountResolver.ResolveOffsetCountWithReserve(offset, ref count);
-
-            var userLeftMenuModel = await UserLeftMenuModel.FromDatabase(DbConnection, User.Identity.Name, User);
-
-            var users = await SearchUsersAsync(userLeftMenuModel.Id, q, 0, sum);
-            users.DefaultText = "No users found for " + q;
-
-            ViewData["User"] = userLeftMenuModel;
-            ViewData["Title"] = "Search";
-            ViewData["Main"] = "Search users: " + q;
-
-            return View("~/Views/SimpleListWithLoadMoreView.cshtml", users);
+            Task<ListWithLoadMoreModel> UsersLoader(string id, int offset_, int count, IAuthor author) // local function
+                => SearchUsersAsync(id, offset_, count, q);
+            return await base.Get(User.Identity.Name, UsersLoader, offset, PostsPortion,
+                u => "No users found for " + q, u => "Search users", u => "Search users: " + q);
         }
 
 
@@ -143,23 +63,19 @@ ORDER BY Pos ASC, LEN(P.Message) ASC
         [ActionName("Users")]
         public async Task<IActionResult> UsersPost([FromForm] string q, [FromForm] int offset)
         {
-            if (string.IsNullOrWhiteSpace(q) || q.Length > 50)
+            if (!CheckQ(q))
                 return BadRequest();
 
-            int count = UsersPortion;
-            OffsetCountResolver.ResolveOffsetCountWithReserve(offset, ref count);
-
-            var myId = await DbConnection.GetUserIdByNameAsync(User.Identity.Name);
-
-            var users = await SearchUsersAsync(myId, q, offset, count);
-            return PartialView("~/Views/_Partials/ListWithLoadMore.cshtml", users);
+            Task<ListWithLoadMoreModel> UsersLoader(string id, int offset_, int count, IAuthor author) // local function
+                => SearchUsersAsync(id, offset_, count, q);
+            return await base.Post(User.Identity.Name, UsersLoader, offset, PostsPortion);
         }
 
-        private async Task<ListWithLoadMoreModel> SearchUsersAsync(string myId, string q, int offset, int count)
+        private async Task<ListWithLoadMoreModel> SearchUsersAsync(string myId, int offset, int count, string q)
         {
             ListWithLoadMoreModel result = new ListWithLoadMoreModel();
 
-            var quertyPosLen = 
+            var quertyPosLen =
 $@"
 SELECT {QueryBuildHelpers.SelectFields.UserView("I")}, 
     CASE 
@@ -193,7 +109,9 @@ ORDER BY U.Pos ASC
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     if (!reader.HasRows)
-                        return result;
+                    {
+                        return offset == 0 ? result : null;
+                    }
                     var posts = await UserViewModel.FromSqlReaderAsync(reader);
                     if (posts.Count == count + 1)
                     {
@@ -211,7 +129,76 @@ ORDER BY U.Pos ASC
         }
 
 
-        public static int UsersPortion => 1;
-        public static int PostsPortion => 1;
+
+
+
+
+
+        public async Task<IActionResult> Posts([FromQuery] string q, [FromQuery] int offset = 0)
+        {
+            if (!CheckQ(q))
+                return BadRequest();
+
+            Task<ListWithLoadMoreModel> PostsLoader(string id, int offset_, int count, IAuthor author) // local function
+                => SearchPostsAsync(id, offset_, count, q);
+            return await base.Get(User.Identity.Name, PostsLoader, offset, PostsPortion,
+                u => "No posts found for " + q, u => "Search posts", u => "Search posts: " + q);
+        }
+
+
+        [HttpPost]
+        [ActionName("Posts")]
+        public async Task<IActionResult> PostsPost([FromForm] string q, [FromForm] int offset)
+        {
+            if (!CheckQ(q))
+                return BadRequest();
+
+            Task<ListWithLoadMoreModel> UsersLoader(string id, int offset_, int count, IAuthor author) // local function
+                => SearchPostsAsync(id, offset_, count, q);
+            return await base.Post(User.Identity.Name, UsersLoader, offset, PostsPortion);
+        }
+
+        private async Task<ListWithLoadMoreModel> SearchPostsAsync(string myId, int offset, int count, string q)
+        {
+            ListWithLoadMoreModel result = new ListWithLoadMoreModel();
+
+            var query =
+$@" 
+SELECT {QueryBuildHelpers.SelectFields.PostView("U", "P")} 
+FROM Posts P JOIN AspNetUsers U ON P.AuthorId = U.Id 
+{QueryBuildHelpers.CrossApply.LikesCounts(myId, "U", "P")} 
+CROSS APPLY (SELECT Pos = CHARINDEX(@q, UPPER(P.Message)) ) _PosCalculation
+WHERE ({QueryBuildHelpers.WhereClause.OpenedUsersWhereClause(myId, "U")}) AND Pos > 0
+ORDER BY Pos ASC, LEN(P.Message) ASC 
+{QueryBuildHelpers.OffsetCount.FetchWithOffsetWithReserveBlock(offset, count)} 
+";
+
+            using (var cmd = DbConnection.CreateCommand())
+            {
+                cmd.Parameters.AddWithValue("@q", q.ToUpper());
+                cmd.CommandText = query;
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    if (!reader.HasRows)
+                    {
+                        return offset == 0 ? result : null;
+                    }
+                    var posts = await PostViewModel.FromSqlReaderAsync(reader);
+                    if (posts.Count == count + 1)
+                    {
+                        posts.RemoveAt(posts.Count - 1);
+                        result.LoadMoreModel = new LoadMoreModel("/search/posts")
+                        {
+                            Offset = offset + count,
+                        };
+                        result.LoadMoreModel.AdditionalFields["q"] = q;
+                    }
+                    result.Elements = posts;
+                }
+            }
+            return result;
+        }
+
+
     }
 }

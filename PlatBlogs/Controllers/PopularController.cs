@@ -8,33 +8,26 @@ using Microsoft.AspNetCore.Mvc;
 using PlatBlogs.Attributes;
 using PlatBlogs.Extensions;
 using PlatBlogs.Helpers;
+using PlatBlogs.Interfaces;
 using PlatBlogs.Views._Partials;
 
 namespace PlatBlogs.Controllers
 {
     [Authorize]
     [OffsetExceptionFilter]
-    public class PopularController : Controller
+    public class PopularController : OffsetCountBaseController
     {
-        public PopularController(DbConnection dbConnection) { DbConnection = dbConnection; }
-        public DbConnection DbConnection { get; set; }
+        public PopularController(DbConnection dbConnection) : base(dbConnection) { }
 
+        public static int PostsPortion => 2;
+
+        private ItemsLoaderDelegate PostsLoader =>
+            ((string id, int offset, int count, IAuthor author) => GetPopularPostsAsync(id, offset, count));
 
         public async Task<IActionResult> Index([FromQuery] int offset = 0)
         {
-            int count = PostsPortion;
-            int sum = OffsetCountResolver.ResolveOffsetCountWithReserve(offset, ref count);
-
-            var userLeftMenuModel = await UserLeftMenuModel.FromDatabase(DbConnection, User.Identity.Name, User);
-
-            var posts = await GetPopularPostsAsync(userLeftMenuModel.Id, 0, sum);
-            posts.DefaultText = "No popular news yet";
-
-            ViewData["User"] = userLeftMenuModel;
-            ViewData["Title"] = "Popular";
-            ViewData["Main"] = "Popular news";
-
-            return View("~/Views/SimpleListWithLoadMoreView.cshtml", posts);
+            return await base.Get(User.Identity.Name, PostsLoader, offset, PostsPortion,
+                u => "No popular news yet", u => "Popular", u => "Popular news");
         }
 
 
@@ -42,16 +35,10 @@ namespace PlatBlogs.Controllers
         [ActionName("Index")]
         public async Task<IActionResult> IndexPost([FromForm] int offset)
         {
-            int count = PostsPortion;
-            OffsetCountResolver.ResolveOffsetCountWithReserve(offset, ref count);
-
-            var myId = await DbConnection.GetUserIdByNameAsync(User.Identity.Name);
-
-            var posts = await GetPopularPostsAsync(myId, offset, count);
-            return PartialView("~/Views/_Partials/ListWithLoadMore.cshtml", posts);
+            return await base.Post(User.Identity.Name, PostsLoader, offset, PostsPortion);
         }
 
-        private async Task<ListWithLoadMoreModel> GetPopularPostsAsync(string myId, int offset, int count)
+        private async Task<ListWithLoadMoreModel> GetPopularPostsAsync(string myId, int offset, int count, IUser me = null)
         {
             ListWithLoadMoreModel result = new ListWithLoadMoreModel();
             
@@ -71,7 +58,9 @@ ORDER BY (AllLikesCount - DATEDIFF(DAY, P.DateTime, GETDATE()) ) DESC, P.DateTim
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     if (!reader.HasRows)
-                        return result;
+                    {
+                        return offset == 0 ? result : null;
+                    }
                     var posts = await PostViewModel.FromSqlReaderAsync(reader);
                     if (posts.Count == count + 1)
                     {
@@ -88,6 +77,5 @@ ORDER BY (AllLikesCount - DATEDIFF(DAY, P.DateTime, GETDATE()) ) DESC, P.DateTim
         }
 
 
-        public static int PostsPortion => 2;
     }
 }

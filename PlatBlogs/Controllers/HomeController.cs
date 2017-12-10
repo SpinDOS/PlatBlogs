@@ -8,33 +8,25 @@ using Microsoft.AspNetCore.Mvc;
 using PlatBlogs.Attributes;
 using PlatBlogs.Extensions;
 using PlatBlogs.Helpers;
+using PlatBlogs.Interfaces;
 using PlatBlogs.Views._Partials;
 
 namespace PlatBlogs.Controllers
 {
     [Authorize]
     [OffsetExceptionFilter]
-    public class HomeController : Controller
+    public class HomeController : OffsetCountBaseController
     {
-        public HomeController(DbConnection dbConnection) { DbConnection = dbConnection; }
-        public DbConnection DbConnection { get; set; }
+        public HomeController(DbConnection dbConnection) : base(dbConnection) { }
+        public static int PostsPortion => 1;
 
+        private ItemsLoaderDelegate PostsLoader =>
+            ((string id, int offset, int count, IAuthor author) => GetHomePostsAsync(id, offset, count));
 
         public async Task<IActionResult> Index([FromQuery] int offset = 0)
         {
-            int count = PostsPortion;
-            int sum = OffsetCountResolver.ResolveOffsetCountWithReserve(offset, ref count);
-
-            var userLeftMenuModel = await UserLeftMenuModel.FromDatabase(DbConnection, User.Identity.Name, User);
-
-            var posts = await GetHomePostsAsync(userLeftMenuModel.Id, 0, sum);
-            posts.DefaultText = "No news yet";
-
-            ViewData["User"] = userLeftMenuModel;
-            ViewData["Title"] = "Home";
-            ViewData["Main"] = "Your news";
-
-            return View("~/Views/SimpleListWithLoadMoreView.cshtml", posts);
+            return await base.Get(User.Identity.Name, PostsLoader, offset, PostsPortion,
+                u => "No news yet", u => "Home", u => "Your news");
         }
 
 
@@ -42,13 +34,7 @@ namespace PlatBlogs.Controllers
         [ActionName("Index")]
         public async Task<IActionResult> IndexPost([FromForm] int offset)
         {
-            int count = PostsPortion;
-            OffsetCountResolver.ResolveOffsetCountWithReserve(offset, ref count);
-
-            var myId = await DbConnection.GetUserIdByNameAsync(User.Identity.Name);
-
-            var posts = await GetHomePostsAsync(myId, offset, count);
-            return PartialView("~/Views/_Partials/ListWithLoadMore.cshtml", posts);
+            return await base.Post(User.Identity.Name, PostsLoader, offset, PostsPortion);
         }
 
         private async Task<ListWithLoadMoreModel> GetHomePostsAsync(string myId, int offset, int count)
@@ -72,7 +58,9 @@ ORDER BY P.DateTime DESC
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     if (!reader.HasRows)
-                        return result;
+                    {
+                        return offset == 0 ? result : null;
+                    }
                     var posts = await PostViewModel.FromSqlReaderAsync(reader);
                     if (posts.Count == count + 1)
                     {
@@ -87,8 +75,6 @@ ORDER BY P.DateTime DESC
             }
             return result;
         }
-
-
-        public static int PostsPortion => 1;
+        
     }
 }

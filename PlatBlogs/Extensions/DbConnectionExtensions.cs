@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using PlatBlogs.Data;
+using PlatBlogs.Interfaces;
 using PlatBlogs.Views._Partials;
 
 namespace PlatBlogs.Extensions
@@ -52,6 +53,12 @@ namespace PlatBlogs.Extensions
                     return true;
             }
             return await CheckFollowingAsync(conn, viewerId, viewedId);
+        }
+
+        public static async Task<bool> IsOpenedForViewerAsync(this DbConnection conn, IAuthor viewedUser, string viewerId)
+        {
+            return viewedUser.PublicProfile || viewedUser.Id == viewerId ||
+                   await conn.CheckFollowingAsync(viewerId, viewedUser.Id);
         }
     }
 }
