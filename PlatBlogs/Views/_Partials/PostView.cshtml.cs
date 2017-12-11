@@ -34,7 +34,7 @@ namespace PlatBlogs.Views._Partials
         public bool Liked { get; set; }
         public int LikesCount { get; set; }
         
-        public static async Task<List<PostViewModel>> FromSqlReaderAsync(DbDataReader reader)
+        public static async Task<IList<PostViewModel>> FromSqlReaderAsync(DbDataReader reader)
         {
             var result = new List<PostViewModel>();
             do
@@ -66,6 +66,6 @@ namespace PlatBlogs.Views._Partials
 
         public async Task<object> RenderAsync(IHtmlHelper iHtmlHelper) 
             => await iHtmlHelper.PartialAsync("~/Views/_Partials/PostView.cshtml", this);
-
+        
     }
 }

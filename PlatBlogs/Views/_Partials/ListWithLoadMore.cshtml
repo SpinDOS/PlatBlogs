@@ -1,5 +1,5 @@
 ﻿@model _Partials.ListWithLoadMoreModel
-@if (Model.Elements != null && Model.Elements.Count > 0)
+@if (Model.Elements != null && Model.Elements.Any())
 {
     foreach (var element in Model.Elements)
     {

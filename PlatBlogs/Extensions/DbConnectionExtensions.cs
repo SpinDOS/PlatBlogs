@@ -60,5 +60,33 @@ namespace PlatBlogs.Extensions
             return viewedUser.PublicProfile || viewedUser.Id == viewerId ||
                    await conn.CheckFollowingAsync(viewerId, viewedUser.Id);
         }
+
+        public static async Task<ListWithLoadMoreModel> ReadToListWithLoadMoreModel<T>(this DbDataReader reader,
+            int offset, int count,
+            Func<DbDataReader, Task<IList<T>>> itemsReader,
+            Func<LoadMoreModel> loadMoreModelBuilder = null) where T : IRenderable
+        {
+            if (!reader.HasRows)
+            {
+                return offset != 0 ? null : new ListWithLoadMoreModel();
+            }
+
+            ListWithLoadMoreModel result = new ListWithLoadMoreModel();
+
+            var items = await itemsReader(reader);
+            if (items.Count == count + 1)
+            {
+                items.RemoveAt(count);
+                if (loadMoreModelBuilder != null)
+                {
+                    var loadMoreModel = loadMoreModelBuilder();
+                    loadMoreModel.Offset = offset + count;
+                    result.LoadMoreModel = loadMoreModel;
+                }
+            }
+            result.Elements = items.Cast<IRenderable>();
+            return result;
+        }
+
     }
 }

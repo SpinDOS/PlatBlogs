@@ -39,10 +39,7 @@ namespace PlatBlogs.Controllers
 
         private async Task<ListWithLoadMoreModel> GetHomePostsAsync(string myId, int offset, int count)
         {
-            ListWithLoadMoreModel result = new ListWithLoadMoreModel();
-            
             var query = 
-
 $@" 
 SELECT {QueryBuildHelpers.SelectFields.PostView("U", "P")} 
 FROM Posts P JOIN AspNetUsers U ON P.AuthorId = U.Id 
@@ -57,23 +54,10 @@ ORDER BY P.DateTime DESC
                 cmd.CommandText = query;
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
-                    if (!reader.HasRows)
-                    {
-                        return offset == 0 ? result : null;
-                    }
-                    var posts = await PostViewModel.FromSqlReaderAsync(reader);
-                    if (posts.Count == count + 1)
-                    {
-                        posts.RemoveAt(posts.Count - 1);
-                        result.LoadMoreModel = new LoadMoreModel("/Home")
-                        {
-                            Offset = offset + count,
-                        };
-                    }
-                    result.Elements = posts;
+                    return await reader.ReadToListWithLoadMoreModel(offset, count, PostViewModel.FromSqlReaderAsync,
+                        () => new LoadMoreModel("/Home"));
                 }
             }
-            return result;
         }
         
     }

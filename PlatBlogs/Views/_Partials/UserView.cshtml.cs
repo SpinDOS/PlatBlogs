@@ -35,7 +35,7 @@ namespace PlatBlogs.Views._Partials
         public bool PublicProfile { get; set; }
         public string ShortInfo { get; set; }
 
-        public static async Task<List<UserViewModel>> FromSqlReaderAsync(DbDataReader reader)
+        public static async Task<IList<UserViewModel>> FromSqlReaderAsync(DbDataReader reader)
         {
             var result = new List<UserViewModel>();
             do

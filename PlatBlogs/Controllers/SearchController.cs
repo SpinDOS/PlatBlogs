@@ -32,9 +32,11 @@ namespace PlatBlogs.Controllers
             ViewData["User"] = userLeftMenuModel;
 
             var users = await SearchUsersAsync(userLeftMenuModel.Id, 0, UsersPortion, q);
-            users.DefaultText = "No users found";
+            if (users.DefaultText == null)
+                users.DefaultText = "No users found";
             var posts = await SearchPostsAsync(userLeftMenuModel.Id, 0, PostsPortion, q);
-            posts.DefaultText = "No posts found";
+            if (posts.DefaultText == null)
+                posts.DefaultText = "No posts found";
 
             var model = new SearchModel()
             {
@@ -45,6 +47,7 @@ namespace PlatBlogs.Controllers
 
             return View("~/Views/Search.cshtml", model);
         }
+
 
 
 
@@ -73,9 +76,7 @@ namespace PlatBlogs.Controllers
 
         private async Task<ListWithLoadMoreModel> SearchUsersAsync(string myId, int offset, int count, string q)
         {
-            ListWithLoadMoreModel result = new ListWithLoadMoreModel();
-
-            var quertyPosLen =
+            var queryPosAndLength =
 $@"
 SELECT {QueryBuildHelpers.SelectFields.UserView("I")}, 
     CASE 
@@ -97,7 +98,7 @@ WHERE FullNamePos > 0 OR UserNamePos > 3
             var query =
 $@" 
 SELECT {QueryBuildHelpers.SelectFields.UserView("U")} 
-FROM ({quertyPosLen}) U 
+FROM ({queryPosAndLength}) U 
 ORDER BY U.Pos ASC 
 {QueryBuildHelpers.OffsetCount.FetchWithOffsetWithReserveBlock(offset, count)} 
 ";
@@ -108,29 +109,12 @@ ORDER BY U.Pos ASC
                 cmd.CommandText = query;
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
-                    if (!reader.HasRows)
-                    {
-                        return offset == 0 ? result : null;
-                    }
-                    var posts = await UserViewModel.FromSqlReaderAsync(reader);
-                    if (posts.Count == count + 1)
-                    {
-                        posts.RemoveAt(posts.Count - 1);
-                        result.LoadMoreModel = new LoadMoreModel("/search/users")
-                        {
-                            Offset = offset + count,
-                        };
-                        result.LoadMoreModel.AdditionalFields["q"] = q;
-                    }
-                    result.Elements = posts;
+                    return await reader.ReadToListWithLoadMoreModel(offset, count, UserViewModel.FromSqlReaderAsync,
+                        () => new LoadMoreModel("/Search/Users") { AdditionalFields = { ["q"] = q } });
                 }
             }
-            return result;
         }
-
-
-
-
+        
 
 
 
@@ -160,8 +144,6 @@ ORDER BY U.Pos ASC
 
         private async Task<ListWithLoadMoreModel> SearchPostsAsync(string myId, int offset, int count, string q)
         {
-            ListWithLoadMoreModel result = new ListWithLoadMoreModel();
-
             var query =
 $@" 
 SELECT {QueryBuildHelpers.SelectFields.PostView("U", "P")} 
@@ -179,26 +161,11 @@ ORDER BY Pos ASC, LEN(P.Message) ASC
                 cmd.CommandText = query;
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
-                    if (!reader.HasRows)
-                    {
-                        return offset == 0 ? result : null;
-                    }
-                    var posts = await PostViewModel.FromSqlReaderAsync(reader);
-                    if (posts.Count == count + 1)
-                    {
-                        posts.RemoveAt(posts.Count - 1);
-                        result.LoadMoreModel = new LoadMoreModel("/search/posts")
-                        {
-                            Offset = offset + count,
-                        };
-                        result.LoadMoreModel.AdditionalFields["q"] = q;
-                    }
-                    result.Elements = posts;
+                    return await reader.ReadToListWithLoadMoreModel(offset, count, PostViewModel.FromSqlReaderAsync, 
+                        () => new LoadMoreModel("/Search/Posts") { AdditionalFields = { ["q"] = q } });
                 }
             }
-            return result;
         }
-
-
+        
     }
 }

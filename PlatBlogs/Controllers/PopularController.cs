@@ -40,8 +40,6 @@ namespace PlatBlogs.Controllers
 
         private async Task<ListWithLoadMoreModel> GetPopularPostsAsync(string myId, int offset, int count, IUser me = null)
         {
-            ListWithLoadMoreModel result = new ListWithLoadMoreModel();
-            
             var query =
 $@" 
 SELECT {QueryBuildHelpers.SelectFields.PostView("U", "P")} 
@@ -57,23 +55,10 @@ ORDER BY (AllLikesCount - DATEDIFF(DAY, P.DateTime, GETDATE()) ) DESC, P.DateTim
                 cmd.CommandText = query;
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
-                    if (!reader.HasRows)
-                    {
-                        return offset == 0 ? result : null;
-                    }
-                    var posts = await PostViewModel.FromSqlReaderAsync(reader);
-                    if (posts.Count == count + 1)
-                    {
-                        posts.RemoveAt(posts.Count - 1);
-                        result.LoadMoreModel = new LoadMoreModel("/Popular")
-                        {
-                            Offset = offset + count,
-                        };
-                    }
-                    result.Elements = posts;
+                    return await reader.ReadToListWithLoadMoreModel(offset, count, PostViewModel.FromSqlReaderAsync,
+                        () => new LoadMoreModel("/Popular"));
                 }
             }
-            return result;
         }
 
 

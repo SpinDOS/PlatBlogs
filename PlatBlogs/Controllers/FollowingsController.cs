@@ -62,8 +62,6 @@ namespace PlatBlogs.Controllers
         private async Task<ListWithLoadMoreModel> GetUsersAsync(string userId, int offset, int count, 
             string name, bool followings)
         {
-            ListWithLoadMoreModel result = new ListWithLoadMoreModel();
-            
             var query = 
 $@" 
 SELECT {QueryBuildHelpers.SelectFields.UserView("U")} 
@@ -79,23 +77,10 @@ ORDER BY Id
                 cmd.CommandText = query;
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
-                    if (!reader.HasRows)
-                    {
-                        return offset == 0 ? result : null;
-                    }
-                    var users = await UserViewModel.FromSqlReaderAsync(reader);
-                    if (users.Count == count + 1)
-                    {
-                        users.RemoveAt(users.Count - 1);
-                        result.LoadMoreModel = new LoadMoreModel($"/Follow{(followings? "ing": "er")}s/{name}")
-                        {
-                            Offset = offset + count,
-                        };
-                    }
-                    result.Elements = users;
+                    return await reader.ReadToListWithLoadMoreModel(offset, count, UserViewModel.FromSqlReaderAsync,
+                        () => new LoadMoreModel($"/Follow{(followings ? "ing" : "er")}s/{name}"));
                 }
             }
-            return result;
         }
 
     }

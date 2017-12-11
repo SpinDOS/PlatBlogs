@@ -36,7 +36,6 @@ namespace PlatBlogs.Controllers
 
         private async Task<ListWithLoadMoreModel> GetUserPostsAsync(string authorId, int offset, int count, IAuthor author)
         {
-            var result = new ListWithLoadMoreModel();
             var myId = await DbConnection.GetUserIdByNameAsync(User.Identity.Name);
 
             if (author == null)
@@ -46,10 +45,12 @@ namespace PlatBlogs.Controllers
 
             if (!await DbConnection.IsOpenedForViewerAsync(author, myId))
             {
-                result.DefaultText = 
-                    $"User {author.UserName} has private profile. " +
-                    $"Only people followed by {author.UserName} can access posts";
-                return result;
+                return new ListWithLoadMoreModel()
+                {
+                    DefaultText =
+                        $"User {author.UserName} has private profile. " +
+                        $"Only people followed by {author.UserName} can access posts",
+                };
             }
 
             var singleAuthorQuery =
@@ -77,24 +78,12 @@ ORDER BY P.DateTime DESC
                 cmd.CommandText = query;
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
-                    if (!reader.HasRows)
-                    {
-                        return offset == 0 ? result : null;
-                    }
-                    var posts = await PostViewModel.FromSqlReaderAsync(reader);
-                    if (posts.Count == count + 1)
-                    {
-                        posts.RemoveAt(posts.Count - 1);
-                        result.LoadMoreModel = new LoadMoreModel("/user/" + author.UserName)
-                        {
-                            Offset = offset + count,
-                        };
-                    }
-                    result.Elements = posts;
+                    return await reader.ReadToListWithLoadMoreModel(offset, count, PostViewModel.FromSqlReaderAsync,
+                        () => new LoadMoreModel("/User/" + author.UserName));
                 }
             }
-            return result;
         }
+
 
         private async Task<IAuthor> GetAuthorById(string userId)
         {
@@ -102,7 +91,7 @@ ORDER BY P.DateTime DESC
 $@"
 SELECT U.Id, {QueryBuildHelpers.SelectFields.Author("U")} 
 FROM AspNetUsers U 
-WHERE Id = '{userId}'
+WHERE Id = '{userId}' 
 ";
 
             using (var cmd = DbConnection.CreateCommand())
