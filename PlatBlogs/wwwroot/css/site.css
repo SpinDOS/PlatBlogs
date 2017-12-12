@@ -292,3 +292,12 @@ a:link, a:visited, a:hover, a:active  {
 .text-danger-important {
     color: #a94442 !important;
 }
+
+.float-left {
+    float: left;
+}
+
+.navbar-right-link {
+    float: right;
+    font-size: 16px !important;
+}
