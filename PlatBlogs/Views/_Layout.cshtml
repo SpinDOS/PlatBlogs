@@ -1,6 +1,6 @@
 ﻿@using System.Data.Common
 @using Views._Partials
-@inject DbConnection DbConnection;
+@inject DbConnection DbConnection
 
 @{
     var userLeftMenuModel = ViewData["User"] as UserLeftMenuModel ??
@@ -35,7 +35,8 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a href="/Home" class="navbar-brand">Home</a>
+            <a href="/User/@User.Identity.Name" class="navbar-brand">@@@User.Identity.Name</a>
+            <a href="/News" class="navbar-brand">News</a>
             <a href="/Popular" class="navbar-brand">Popular</a>
         </div>
         <div class="navbar-collapse collapse">
