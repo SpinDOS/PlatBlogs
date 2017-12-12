@@ -76,9 +76,13 @@ namespace PlatBlogs.Pages.Account
                 {
                     var user = await _userManager.FindByNameAsync(Input.Username);
                     if (user != null && !user.EmailConfirmed)
-                        ModelState.AddModelError(string.Empty, "Email is not confirmed");
+                    {
+                        ViewData["UserWithUnconfirmedEmail"] = user;
+                    }
                     else
+                    {
                         ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                    }
 
                 }
             }

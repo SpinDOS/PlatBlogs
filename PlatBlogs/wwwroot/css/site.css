@@ -288,3 +288,7 @@ a:link, a:visited, a:hover, a:active  {
     margin: 0;
     font-size: 150%;
 }
+
+.text-danger-important {
+    color: #a94442 !important;
+}

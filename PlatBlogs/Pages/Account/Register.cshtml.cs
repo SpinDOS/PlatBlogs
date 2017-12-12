@@ -141,7 +141,7 @@ namespace PlatBlogs.Pages.Account
                     //await _signInManager.SignInAsync(user, isPersistent: false);
                     if (returnUrl == null)
                     {
-                        TempData["EmailToConfirm"] = Input.Email;
+                        TempData["ConfirmationEmailSent"] = Input.Email;
                         return RedirectToPage("Login");
                     }
                     return LocalRedirect(Url.GetLocalUrl(returnUrl));
