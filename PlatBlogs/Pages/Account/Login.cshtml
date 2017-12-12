@@ -33,13 +33,12 @@
                         <ul>
                             <li>
                                 <a asp-controller="Account" asp-action="ResendConfirmationLink"
-                                   asp-route-userName="@userWithUnconfirmedEmail.UserName" class="text-danger-important">
+                                   asp-route-userName="@userWithUnconfirmedEmail.UserName" asp-route-email="@userWithUnconfirmedEmail.Email" class="text-danger-important">
                                     Email is not confirmed. Resend confirmation link to @userWithUnconfirmedEmail.Email
                                 </a>
                             </li>
                         </ul>
                     }
-                    
                 </div>
                 <div class="form-group">
                     <label asp-for="Input.Username"></label>

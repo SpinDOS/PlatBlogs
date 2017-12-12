@@ -42,12 +42,12 @@ namespace PlatBlogs.Controllers
         }
 
         [AllowAnonymous]
-        public async Task<IActionResult> ResendConfirmationLink(string userName)
+        public async Task<IActionResult> ResendConfirmationLink(string userName, string email)
         {
-            if (string.IsNullOrWhiteSpace(userName))
+            if (string.IsNullOrWhiteSpace(userName) || string.IsNullOrWhiteSpace(email))
                 return NotFound();
             var user = await _userManager.FindByNameAsync(userName);
-            if (user == null)
+            if (user == null || user.NormalizedEmail != email.ToUpper())
                 return NotFound();
             var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             var callbackUrl = Url.EmailConfirmationLink(user.Id, code, Request.Scheme);
@@ -59,7 +59,7 @@ namespace PlatBlogs.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> ConfirmEmail(string userId, string code)
         {
-            if (userId == null || code == null)
+            if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(code))
             {
                 return RedirectToPage("/Index");
             }
