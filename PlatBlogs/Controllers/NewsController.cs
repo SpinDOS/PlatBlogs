@@ -15,18 +15,18 @@ namespace PlatBlogs.Controllers
 {
     [Authorize]
     [OffsetExceptionFilter]
-    public class HomeController : OffsetCountBaseController
+    public class NewsController : OffsetCountBaseController
     {
-        public HomeController(DbConnection dbConnection) : base(dbConnection) { }
+        public NewsController(DbConnection dbConnection) : base(dbConnection) { }
         public static int PostsPortion => 1;
 
         private ItemsLoaderDelegate PostsLoader =>
-            ((string id, int offset, int count, IAuthor author) => GetHomePostsAsync(id, offset, count));
+            ((string id, int offset, int count, IAuthor author) => GetNewsPostsAsync(id, offset, count));
 
         public async Task<IActionResult> Index([FromQuery] int offset = 0)
         {
             return await base.Get(User.Identity.Name, PostsLoader, offset, PostsPortion,
-                u => "No news yet", u => "Home", u => "Your news");
+                u => "No news yet", u => "News", u => "Your news");
         }
 
 
@@ -37,7 +37,7 @@ namespace PlatBlogs.Controllers
             return await base.Post(User.Identity.Name, PostsLoader, offset, PostsPortion);
         }
 
-        private async Task<ListWithLoadMoreModel> GetHomePostsAsync(string myId, int offset, int count)
+        private async Task<ListWithLoadMoreModel> GetNewsPostsAsync(string myId, int offset, int count)
         {
             var query = 
 $@" 
@@ -55,7 +55,7 @@ ORDER BY P.DateTime DESC
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     return await reader.ReadToListWithLoadMoreModel(offset, count, PostViewModel.FromSqlReaderAsync,
-                        () => new LoadMoreModel("/Home"));
+                        () => new LoadMoreModel("/News"));
                 }
             }
         }
