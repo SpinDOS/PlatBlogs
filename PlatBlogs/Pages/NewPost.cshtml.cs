@@ -14,6 +14,7 @@ using PlatBlogs.Extensions;
 
 namespace PlatBlogs.Pages
 {
+    [Authorize]
     public class NewPostModel : PageModel
     {
         public NewPostModel(DbConnection dbConnection) { DbConnection = dbConnection; }
@@ -30,7 +31,6 @@ namespace PlatBlogs.Pages
 
         public DbConnection DbConnection { get; }
 
-        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> OnPost()
         {
