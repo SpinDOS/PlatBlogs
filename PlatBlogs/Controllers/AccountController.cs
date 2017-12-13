@@ -52,34 +52,10 @@ namespace PlatBlogs.Controllers
             if (user.NormalizedEmail == email.ToUpper())
             {
                 var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                var callbackUrl = Url.EmailConfirmationLink(user.Id, code, Request.Scheme);
-                await _emailSender.SendEmailConfirmationAsync(user.Email, callbackUrl);
+                var callbackUrl = Url.EmailConfirmationLink(user.Email, code, Request.Scheme);
+                await _emailSender.SendEmailConfirmationAsync(user.Email, code, callbackUrl);
             }
             TempData["ConfirmationEmailSent"] = user.Email;
-            return RedirectToPage("/Account/Login");
-        }
-
-        [AllowAnonymous]
-        public async Task<IActionResult> ConfirmEmail(string userId, string code)
-        {
-            if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(code))
-            {
-                return RedirectToPage("/Index");
-            }
-
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
-            {
-                throw new ApplicationException($"Unable to load user with ID '{userId}'.");
-            }
-
-            var result = await _userManager.ConfirmEmailAsync(user, code);
-            if (!result.Succeeded)
-            {
-                throw new ApplicationException($"Error confirming email for user with ID '{userId}':");
-            }
-
-            TempData["UserConfirmed"] = user.UserName;
             return RedirectToPage("/Account/Login");
         }
     }

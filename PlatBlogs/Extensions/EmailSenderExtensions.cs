@@ -9,10 +9,11 @@ namespace PlatBlogs.Services
 {
     public static class EmailSenderExtensions
     {
-        public static Task SendEmailConfirmationAsync(this IEmailSender emailSender, string email, string link)
+        public static Task SendEmailConfirmationAsync(this IEmailSender emailSender, string email, string code, string link)
         {
             return emailSender.SendEmailAsync(email, "Confirm your email",
-                $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(link)}'>clicking here</a>.");
+                $"Please confirm your account by entering code \"{code}\" on /Account/ConfirmEmail " + 
+                $"or <a href='{HtmlEncoder.Default.Encode(link)}'>clicking here</a>.");
         }
 
         public static Task SendResetPasswordAsync(this IEmailSender emailSender, string email, string callbackUrl)

@@ -17,10 +17,12 @@ namespace Microsoft.AspNetCore.Mvc
             return localUrl;
         }
 
-        public static string EmailConfirmationLink(this IUrlHelper urlHelper, string userId, string code, string scheme)
+        public static string EmailConfirmationLink(this IUrlHelper urlHelper, string email, string code, string scheme)
         {
-            return urlHelper.Action("ConfirmEmail", "Account", 
-                values: new {userId, code},
+            return urlHelper.Page(
+                "/Account/ConfirmEmail",
+                pageHandler: null,
+                values: new { email, code },
                 protocol: scheme);
         }
 
