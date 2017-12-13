@@ -47,11 +47,14 @@ namespace PlatBlogs.Controllers
             if (string.IsNullOrWhiteSpace(userName) || string.IsNullOrWhiteSpace(email))
                 return NotFound();
             var user = await _userManager.FindByNameAsync(userName);
-            if (user == null || user.NormalizedEmail != email.ToUpper())
+            if (user == null)
                 return NotFound();
-            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            var callbackUrl = Url.EmailConfirmationLink(user.Id, code, Request.Scheme);
-            await _emailSender.SendEmailConfirmationAsync(user.Email, callbackUrl);
+            if (user.NormalizedEmail == email.ToUpper())
+            {
+                var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                var callbackUrl = Url.EmailConfirmationLink(user.Id, code, Request.Scheme);
+                await _emailSender.SendEmailConfirmationAsync(user.Email, callbackUrl);
+            }
             TempData["ConfirmationEmailSent"] = user.Email;
             return RedirectToPage("/Account/Login");
         }
