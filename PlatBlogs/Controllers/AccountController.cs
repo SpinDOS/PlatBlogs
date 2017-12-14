@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -8,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using PlatBlogs.Data;
+using PlatBlogs.Pages.Account;
 using PlatBlogs.Services;
 
 namespace PlatBlogs.Controllers
@@ -32,6 +34,35 @@ namespace PlatBlogs.Controllers
             _logger = logger;
         }
 
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword(SettingsModel.PasswordChangeModel passwordChange)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["Error"] = "Invalid password change input";
+                return RedirectToPage("/Account/Settings");
+            }
+            var user = await _userManager.GetUserAsync(User);
+            var changePasswordResult = await _userManager.ChangePasswordAsync(user,
+                passwordChange.OldPassword, passwordChange.Password);
+
+            if (!changePasswordResult.Succeeded)
+            {
+                TempData["Error"] = changePasswordResult.Errors
+                    .First()?.Description ?? 
+                    "Password change error occurred";
+            }
+            else
+            {
+                TempData["Success"] = "Password changed successfully";
+                await _signInManager.SignInAsync(user, isPersistent: false);
+            }
+            return RedirectToPage("/Account/Settings");
+        }
+
+        [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
