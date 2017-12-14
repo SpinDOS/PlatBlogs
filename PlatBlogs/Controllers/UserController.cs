@@ -31,7 +31,7 @@ namespace PlatBlogs.Controllers
         public async Task<IActionResult> IndexPost(string name, [FromForm] int offset)
         {
             ItemsLoaderDelegate postsLoader = GetUserPostsAsync;
-            return await base.Post(User.Identity.Name, postsLoader, offset, PostsPortion);
+            return await base.Post(name, postsLoader, offset, PostsPortion);
         }
 
         private async Task<ListWithLoadMoreModel> GetUserPostsAsync(string authorId, int offset, int count, IAuthor author)

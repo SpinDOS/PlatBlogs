@@ -47,9 +47,9 @@ namespace PlatBlogs.Controllers
         protected async Task<IActionResult> Post(string userName, ItemsLoaderDelegate itemsLoader, int offset, int count)
         {
             OffsetCountResolver.ResolveOffsetCountWithReserve(offset, ref count);
-            var myId = await DbConnection.GetUserIdByNameAsync(userName);
+            var userId = await DbConnection.GetUserIdByNameAsync(userName);
 
-            var items = await itemsLoader(myId, offset, count);
+            var items = await itemsLoader(userId, offset, count);
             if (items == null)
                 return NotFound();
             return PartialView("~/Views/_Partials/ListWithLoadMore.cshtml", items);
