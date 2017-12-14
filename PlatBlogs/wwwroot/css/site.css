@@ -301,3 +301,11 @@ a:link, a:visited, a:hover, a:active  {
     float: right;
     font-size: 16px !important;
 }
+
+.quit-form {
+    text-align: center;
+}
+
+.quit-form > * {
+    width: 50%;
+}
