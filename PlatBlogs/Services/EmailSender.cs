@@ -19,31 +19,22 @@ namespace PlatBlogs.Services
     //}
     public class EmailSender : IEmailSender
     {
-        public EmailSender(IOptions<EmailCredentials> optionsAccessor)
+        public EmailSender(IOptions<EmailInfo> optionsAccessor)
         {
             var emailCredentials = optionsAccessor.Value;
-            SmtpClient = new SmtpClient(ServerAddress, ServerPort)
+            SmtpClient = new SmtpClient(emailCredentials.Server, emailCredentials.Port)
             {
                 EnableSsl = true,
                 Credentials = new NetworkCredential(emailCredentials.Username, emailCredentials.Password),
             };
-            From = emailCredentials.Username + HostFrom;
+            From = emailCredentials.From;
         }
-
-        private const string ServerAddress = "smtp.mail.ru";
-        private const int ServerPort = 25;
-        private const string HostFrom = "@mail.ru";
 
         private string From { get; }
 
         private SmtpClient SmtpClient { get; }
 
         public Task SendEmailAsync(string email, string subject, string message)
-        {
-            return Execute(email, subject, message);
-        }
-
-        public Task Execute(string email, string subject, string message)
         {
             var mailMessage = new MailMessage(From, email, subject, message);
             return SmtpClient.SendMailAsync(mailMessage);

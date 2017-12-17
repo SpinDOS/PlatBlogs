@@ -51,7 +51,7 @@ namespace PlatBlogs
 
             // Register no-op EmailSender used by account confirmation and password reset during development
             // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=532713
-            services.Configure<EmailCredentials>(Configuration.GetSection("email"));
+            services.Configure<EmailInfo>(Configuration.GetSection("email"));
             services.AddSingleton<IEmailSender, EmailSender>();
 
             services.AddTransient<DbConnection, SqlConnection>(provider =>
